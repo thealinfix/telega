@@ -3,6 +3,8 @@ from src.utils import parser
 class DummyResponse:
     def __init__(self, text):
         self.text = text
+    def raise_for_status(self):
+        pass
 
     def raise_for_status(self):
         pass
