@@ -9,6 +9,9 @@ class DummyResponse:
     def raise_for_status(self):
         pass
 
+    def raise_for_status(self):
+        pass
+
 def test_parse_news(monkeypatch):
     html = """
     <div class='news-item'><span class='title'>First</span><a href='https://ex/1'>a</a></div>
