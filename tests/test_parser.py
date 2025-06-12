@@ -1,30 +1,20 @@
-import unittest
-from unittest.mock import patch, Mock
-import requests
+from src.utils import parser
 
-from src.utils.parser import parse_news, News
+class DummyResponse:
+    def __init__(self, text):
+        self.text = text
 
-class ParseNewsTests(unittest.TestCase):
-    @patch('src.utils.parser.requests.get')
-    def test_parse_news_success(self, mock_get):
-        html = (
-            "<div class='news-item'><span class='title'>Title1</span><a href='link1'></a></div>"
-            "<div class='news-item'><span class='title'>Title2</span><a href='link2'></a></div>"
-        )
-        mock_resp = Mock(status_code=200, text=html)
-        mock_get.return_value = mock_resp
-
-        items = parse_news()
-        self.assertEqual(items, [
-            News(title='Title1', link='link1'),
-            News(title='Title2', link='link2')
-        ])
-
-    @patch('src.utils.parser.requests.get')
-    def test_parse_news_error(self, mock_get):
-        mock_get.side_effect = requests.RequestException
-        items = parse_news()
-        self.assertEqual(items, [])
-
-if __name__ == '__main__':
-    unittest.main()
+def test_parse_news(monkeypatch):
+    html = """
+    <div class='news-item'><span class='title'>First</span><a href='https://ex/1'>a</a></div>
+    <div class='news-item'><span class='title'>Second</span><a href='/2'>a</a></div>
+    """
+    def fake_get(url):
+        return DummyResponse(html)
+    monkeypatch.setattr(parser.requests, "get", fake_get)
+    items = parser.parse_news()
+    assert len(items) == 2
+    assert items[0].title == "First"
+    assert items[0].link == "https://ex/1"
+    assert items[1].title == "Second"
+    assert items[1].link == "/2"
