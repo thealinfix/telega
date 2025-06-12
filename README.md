@@ -14,7 +14,9 @@ Modular Telegram bot project.
    TELEGRAM_TOKEN=your_telegram_token
    OPENAI_API_KEY=your_openai_key
    \`\`\`
-3. Run the bot:
+3. Run the bot using the refactored modules:
    \`\`\`bash
    python3 -m src.bot
    \`\`\`
+
+The original monolithic implementation is preserved at `legacy/hypebot.py`.

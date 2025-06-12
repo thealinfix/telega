@@ -1,3 +1,4 @@
+<<<<<<< ours
 import logging
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 
@@ -18,6 +19,13 @@ async def start(update, context):
 async def echo(update, context):
     """Повторяет всё, что прислали боту"""
     await update.message.reply_text(update.message.text)
+=======
+from telegram.ext import ApplicationBuilder
+from config import TELEGRAM_TOKEN
+from handlers.news_handler import register_news
+from handlers.moderation_handler import register_moderation
+from handlers.hype_handlers import register_hype
+>>>>>>> theirs
 
 def main():
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
@@ -29,8 +37,12 @@ def main():
     # Ваши существующие обработчики
     register_news(app)
     register_moderation(app)
+<<<<<<< ours
 
     logging.info("Bot is starting polling…")
+=======
+    register_hype(app)
+>>>>>>> theirs
     app.run_polling()
 
 if __name__ == '__main__':
