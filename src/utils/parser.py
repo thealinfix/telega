@@ -14,9 +14,14 @@ class News:
 def parse_news():
     try:
         resp = requests.get(NEWS_URL)
-        resp.raise_for_status()
     except RequestException:
         return []
+
+    if hasattr(resp, "raise_for_status"):
+        try:
+            resp.raise_for_status()
+        except RequestException:
+            return []
 
     soup = BeautifulSoup(resp.text, 'html.parser')
     items = []
