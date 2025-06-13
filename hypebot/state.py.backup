@@ -122,6 +122,94 @@ def save_state():
     except Exception as e:
         logging.error(f"Ошибка при сохранении состояния: {e}")
 
+# Добавляем методы для обратной совместимости
+def get(key, default=None):
+    return state.get(key, default)
+
+def pop(key, default=None):
+    return state.pop(key, default)
+
+def clear():
+    return state.clear()
+
+def keys():
+    return state.keys()
+
+def values():
+    return state.values()
+
+def items():
+    return state.items()
+
+def __getitem__(key):
+    return state[key]
+
+def __setitem__(key, value):
+    state[key] = value
+    
+def __contains__(key):
+    return key in state
+EOF# Сначала проверим, что не добавили дважды
+tail -20 hypebot/state.py
+
+# Если методы еще не добавлены, добавляем их
+cat >> hypebot/state.py << 'EOF'
+
+# Добавляем методы для обратной совместимости
+def get(key, default=None):
+    return state.get(key, default)
+
+def pop(key, default=None):
+    return state.pop(key, default)
+
+def clear():
+    return state.clear()
+
+def keys():
+    return state.keys()
+
+def values():
+    return state.values()
+
+def items():
+    return state.items()
+
+def __getitem__(key):
+    return state[key]
+
+def __setitem__(key, value):
+    state[key] = value
+    
+def __contains__(key):
+    return key in state
+
+# Добавляем методы для обратной совместимости
+def get(key, default=None):
+    return state.get(key, default)
+
+def pop(key, default=None):
+    return state.pop(key, default)
+
+def clear():
+    return state.clear()
+
+def keys():
+    return state.keys()
+
+def values():
+    return state.values()
+
+def items():
+    return state.items()
+
+def __getitem__(key):
+    return state[key]
+
+def __setitem__(key, value):
+    state[key] = value
+    
+def __contains__(key):
+    return key in state
 
 # Добавляем методы для обратной совместимости
 def get(key, default=None):

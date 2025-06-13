@@ -3,21 +3,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import logging
-from telegram import Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    CallbackQueryHandler,
-    ContextTypes,
-    MessageHandler,
-    filters,
-)
-from telegram.error import Conflict
-
-from hypebot import config, state
-from hypebot import handlers, tasks
-
-
 # --- Проверка конфигурации ---
 if not all([config.TELEGRAM_TOKEN, config.OPENAI_API_KEY]):
     logging.critical("Не заданы обязательные переменные окружения")
@@ -31,18 +16,6 @@ if config.ADMIN_CHAT_ID and config.ADMIN_CHAT_ID != "123456789":
         exit(1)
 else:
     config.ADMIN_CHAT_ID = None
-
-
-def main() -> None:
-    try:
-        app = Application.builder().token(config.TELEGRAM_TOKEN).connect_timeout(30).read_timeout(30).build()
-
-        app.add_handler(CommandHandler("start", handlers.start_command))
-        app.add_handler(CommandHandler("cancel", handlers.cancel_command))
-        app.add_handler(CommandHandler("thoughts", handlers.thoughts_command))
-        app.add_handler(CommandHandler("skip", handlers.skip_command))
-        app.add_handler(CommandHandler("reset_state", handlers.reset_state_command))
-
         app.add_handler(MessageHandler(filters.PHOTO, handlers.handle_photo))
         app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_text_message))
 

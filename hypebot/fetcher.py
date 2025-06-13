@@ -5,7 +5,8 @@ from urllib.parse import urljoin, urlparse
 from datetime import datetime, timezone
 from typing import List
 
-from . import config, state, utils
+from . import config, utils
+from .state import state
 
 
 async def extract_all_images_from_page(client: httpx.AsyncClient, url: str) -> List[str]:
