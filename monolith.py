@@ -51,8 +51,7 @@ if config.ADMIN_CHAT_ID and config.ADMIN_CHAT_ID != "123456789":
         exit(1)
 else:
     config.ADMIN_CHAT_ID = None
-
-
+    
 async def check_releases_job(context: ContextTypes.DEFAULT_TYPE):
     bot = context.bot
     
