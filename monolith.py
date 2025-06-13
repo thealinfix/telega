@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+from dotenv import load_dotenv
+load_dotenv()
+
+import logging
+
+)
+from telegram.error import Conflict
+
+
+
+# --- Проверка конфигурации ---
+if not all([config.TELEGRAM_TOKEN, config.OPENAI_API_KEY]):
+    logging.critical("Не заданы обязательные переменные окружения")
+    exit(1)
+
+if config.ADMIN_CHAT_ID and config.ADMIN_CHAT_ID != "123456789":
+    try:
+        config.ADMIN_CHAT_ID = int(config.ADMIN_CHAT_ID)
+    except ValueError:
+        logging.critical("config.ADMIN_CHAT_ID должен быть числом")
+        exit(1)
+else:
+    config.ADMIN_CHAT_ID = None
+    try:
+        app = Application.builder().token(config.TELEGRAM_TOKEN).connect_timeout(30).read_timeout(30).build()
+
+        app.add_handler(CommandHandler("start", handlers.start_command))
+        app.add_handler(CommandHandler("cancel", handlers.cancel_command))
+        app.add_handler(CommandHandler("thoughts", handlers.thoughts_command))
+        app.add_handler(CommandHandler("skip", handlers.skip_command))
+        app.add_handler(CommandHandler("reset_state", handlers.reset_state_command))
+
+        app.add_handler(MessageHandler(filters.PHOTO, handlers.handle_photo))
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_text_message))
+
+        app.add_handler(CallbackQueryHandler(handlers.on_callback))
+
+        app.job_queue.run_repeating(
+            tasks.check_releases_job,
+            interval=config.CHECK_INTERVAL_SECONDS,
+            first=30,
+        )
+
+        logging.info("=== HypeBot запущен ===")
+        logging.info(f"Admin ID: {config.ADMIN_CHAT_ID if config.ADMIN_CHAT_ID else 'Не установлен'}")
+        logging.info(f"Channel: {state.get('channel', config.TELEGRAM_CHANNEL)}")
+        logging.info(f"Timezone: {state.get('timezone', config.DEFAULT_TIMEZONE)}")
+        logging.info(f"Источников: {len(config.SOURCES)}")
+        logging.info("Новые функции: настройки канала, временные зоны, улучшенные промпты")
+
+        try:
+            app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
+        except Conflict:
+            logging.critical("Бот уже запущен в другом процессе.")
+            return
+    except Exception as e:
+        logging.critical(f"Критическая ошибка при запуске бота: {e}")
+        import traceback
+        traceback.print_exc()
+        exit(1)
+
+
+if __name__ == "__main__":
+    main()
