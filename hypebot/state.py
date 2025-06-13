@@ -148,5 +148,3 @@ def __getitem__(key):
 def __setitem__(key, value):
     state[key] = value
     
-def __contains__(key):
-    return key in state

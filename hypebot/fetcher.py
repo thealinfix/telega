@@ -107,7 +107,7 @@ async def fetch_releases(client: httpx.AsyncClient, progress_message=None, bot=N
                             continue
                         seen_titles.add(title_key)
                         uid = utils.make_id(src["key"], link)
-                        if uid in state.state["pending"] or link in state.state["sent_links"]:
+                        if uid in state["pending"] or link in state["sent_links"]:
                             continue
                         date_str = post.get("date") or post.get("modified")
                         pub_date = (
@@ -197,7 +197,7 @@ async def fetch_releases(client: httpx.AsyncClient, progress_message=None, bot=N
                                 if not any(keyword in title_lower for keyword in keywords):
                                     continue
                             uid = utils.make_id(src["key"], link)
-                            if uid in state.state["pending"] or link in state.state["sent_links"]:
+                            if uid in state["pending"] or link in state["sent_links"]:
                                 continue
                             pub_date = utils.parse_date_from_rss(item)
                             images = []

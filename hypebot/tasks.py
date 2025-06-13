@@ -4,7 +4,8 @@ import httpx
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
-from . import config, state, utils, fetcher
+from . import config, utils, fetcher
+from .state import state, save_state
 from .messaging import publish_release
 
 
@@ -27,7 +28,7 @@ async def check_releases_job(context: ContextTypes.DEFAULT_TYPE):
         # Ищем новые релизы с прогрессом
         logging.info("Ищу новые релизы...")
         async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
-            new_releases = await fetch_releases(client, progress_msg, bot)
+            new_releases = await fetcher.fetch_releases(client, progress_msg, bot)
         
         if not new_releases:
             await bot.edit_message_text(
@@ -49,7 +50,7 @@ async def check_releases_job(context: ContextTypes.DEFAULT_TYPE):
                 continue
         
         if added_count > 0:
-            state.save_state()
+            save_state()
             logging.info(f"Добавлено {added_count} новых постов в очередь")
             
             # Группируем посты по датам
@@ -135,7 +136,7 @@ async def check_scheduled_posts(bot):
             state["sent_links"].append(record["link"])
     
     if published:
-        state.save_state()
+        save_state()
 
 async def auto_publish_next(bot):
     """Автоматическая публикация следующего поста из избранного"""
@@ -163,7 +164,7 @@ async def auto_publish_next(bot):
                 state["favorites"].remove(fav_id)
                 state["pending"].pop(fav_id, None)
                 state["sent_links"].append(record["link"])
-                state.save_state()
+                save_state()
                 
                 if config.ADMIN_CHAT_ID:
                     await bot.send_message(

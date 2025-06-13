@@ -4,6 +4,8 @@ from telegram.constants import ParseMode
 from telegram.error import TelegramError, BadRequest
 import httpx
 from .openai_utils import openai_client
+from . import config, utils, fetcher
+from .state import state, save_state
 
 async def gen_caption(title: str, context: str, category: str = "sneakers", is_thought: bool = False, image_description: str = "") -> str:
     if is_thought:
