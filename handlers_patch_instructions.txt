@@ -1,0 +1,205 @@
+ИНСТРУКЦИИ ПО ОБНОВЛЕНИЮ handlers.py
+====================================
+
+1. В функции on_callback найдите блок:
+   elif data == "gen_thought_cover":
+   
+   И замените весь блок до return на:
+   -----------------
+   elif data == "gen_thought_cover":
+       await gen_thought_cover_improved(query, context)
+       return
+   -----------------
+
+2. В функции on_callback найдите блок:
+   elif data == "publish_thought":
+   
+   И замените весь блок до return на:
+   -----------------
+   elif data == "publish_thought":
+       await publish_thought_improved(query, context)
+       return
+   -----------------
+
+3. В функции on_callback перед строкой:
+   elif data == "noop":
+   
+   Добавьте новые обработчики:
+   -----------------
+   elif data == "edit_thought_text":
+       await edit_thought_text(update, context)
+       return
+   
+   elif data == "change_thought_photo":
+       await change_thought_photo(update, context)
+       return
+   
+   elif data.startswith("edit_post_text:"):
+       post_id = data.split(":")[1]
+       await edit_post_text_handler(query, context, post_id)
+       return
+   
+   elif data.startswith("change_post_photo:"):
+       post_id = data.split(":")[1]
+       state["changing_post_photo"] = post_id
+       save_state()
+       
+       await query.edit_message_text(
+           "📷 <b>Замена изображения поста</b>\n\n"
+           "Отправьте новое изображение.\n\n"
+           "Отправьте /cancel для отмены",
+           parse_mode=ParseMode.HTML
+       )
+       return
+   -----------------
+
+4. В функции handle_text_message после блока:
+   if state.get("waiting_for_channel"):
+   
+   Добавьте:
+   -----------------
+   elif state.get("editing_thought"):
+       new_text = text.strip()
+       thought_data = state.get("current_thought")
+       
+       if thought_data:
+           thought_data["text"] = new_text
+           state["current_thought"] = thought_data
+           state["editing_thought"] = False
+           save_state()
+           
+           keyboard = InlineKeyboardMarkup([
+               [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+               [
+                   InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                   InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+               ],
+               [
+                   InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                   InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+               ],
+               [
+                   InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                   InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+               ]
+           ])
+           
+           await update.message.reply_text(
+               f"✅ Текст обновлен!\n\n"
+               f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+               parse_mode=ParseMode.HTML,
+               reply_markup=keyboard
+           )
+   
+   elif state.get("editing_post"):
+       post_id = state["editing_post"]
+       record = state["pending"].get(post_id)
+       
+       if record:
+           record["description"] = text.strip()
+           state["pending"][post_id] = record
+           state["editing_post"] = None
+           save_state()
+           
+           await update.message.reply_text("✅ Текст поста обновлен!")
+           await send_for_moderation(context.bot, record)
+   -----------------
+
+5. В функции handle_photo в самом начале после try: добавьте:
+   -----------------
+   if state.get("changing_thought_photo"):
+       thought_data = state.get("current_thought")
+       if thought_data:
+           photo = update.message.photo[-1]
+           thought_data["image_url"] = photo.file_id
+           state["current_thought"] = thought_data
+           state["changing_thought_photo"] = False
+           save_state()
+           
+           keyboard = InlineKeyboardMarkup([
+               [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+               [
+                   InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                   InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+               ],
+               [
+                   InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                   InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+               ],
+               [
+                   InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                   InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+               ]
+           ])
+           
+           await update.message.reply_text(
+               f"✅ Фото обновлено!\n\n"
+               f"💭 <b>Пост-размышление:</b>\n\n{thought_data['text']}",
+               parse_mode=ParseMode.HTML,
+               reply_markup=keyboard
+           )
+       return
+   
+   if state.get("changing_post_photo"):
+       post_id = state["changing_post_photo"]
+       record = state["pending"].get(post_id)
+       
+       if record:
+           photo = update.message.photo[-1]
+           if post_id not in state["generated_images"]:
+               state["generated_images"][post_id] = []
+           
+           state["generated_images"][post_id].insert(0, photo.file_id)
+           state["changing_post_photo"] = None
+           save_state()
+           
+           await update.message.reply_text("✅ Фото добавлено к посту!")
+           await send_for_moderation(context.bot, record)
+       return
+   -----------------
+
+6. В функции send_for_moderation найдите keyboard_buttons и замените на:
+   -----------------
+   keyboard_buttons = [
+       [InlineKeyboardButton("✅ Опубликовать", callback_data=approve_data)],
+       [
+           InlineKeyboardButton("✏️ Изменить текст", callback_data=f"edit_post_text:{record['id']}"),
+           InlineKeyboardButton("🔄 Перегенерировать", callback_data=regenerate_data)
+       ],
+       [
+           InlineKeyboardButton("🎨 Генерировать обложку", callback_data=gen_cover_data),
+           InlineKeyboardButton("✏️ Свой промпт", callback_data=custom_prompt_data)
+       ],
+       [
+           InlineKeyboardButton("📷 Заменить фото", callback_data=f"change_post_photo:{record['id']}"),
+           InlineKeyboardButton("↩️ Вернуть оригинал", callback_data=revert_img_data)
+       ],
+       [
+           InlineKeyboardButton("⏰ Запланировать", callback_data=f"schedule:{record['id']}"),
+           InlineKeyboardButton("❌ Пропустить", callback_data=reject_data)
+       ],
+       [
+           InlineKeyboardButton("◀️ К превью", callback_data=back_data),
+           InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+       ]
+   ]
+   -----------------
+
+7. В функции cancel_command добавьте новые состояния:
+   -----------------
+   if state.get("editing_thought"):
+       state["editing_thought"] = False
+       cancelled.append("редактирование текста мысли")
+   
+   if state.get("changing_thought_photo"):
+       state["changing_thought_photo"] = False
+       cancelled.append("замена фото мысли")
+   
+   if state.get("editing_post"):
+       state["editing_post"] = None
+       cancelled.append("редактирование текста поста")
+   
+   if state.get("changing_post_photo"):
+       state["changing_post_photo"] = None
+       cancelled.append("замена фото поста")
+   -----------------

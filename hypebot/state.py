@@ -147,4 +147,15 @@ def __getitem__(key):
 
 def __setitem__(key, value):
     state[key] = value
+    save_state()
     
+def __contains__(key):
+    return key in state
+
+def __delitem__(key):
+    del state[key]
+    save_state()
+
+def update(other):
+    state.update(other)
+    save_state()

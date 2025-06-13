@@ -43,6 +43,11 @@ def main():
         app.add_handler(MessageHandler(filters.PHOTO, handlers.handle_photo))
         app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_text_message))
 
+        # Регистрация новых команд
+        app.add_handler(CommandHandler("check", handlers.check_command))
+        app.add_handler(CommandHandler("status", handlers.status_command))
+        app.add_handler(CommandHandler("settings", handlers.settings_command))
+
         # Регистрация обработчика callback-кнопок
         app.add_handler(CallbackQueryHandler(handlers.on_callback))
 
