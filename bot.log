@@ -1,0 +1,233 @@
+2025-06-13 10:50:19 - root - CRITICAL - Критическая ошибка при запуске бота: 'NoneType' object has no attribute 'run_repeating'
+2025-06-13 10:51:49 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-06-13 10:51:49 - root - INFO - ✅ JobQueue настроен для периодических проверок
+2025-06-13 10:51:49 - root - INFO - === HypeBot запущен ===
+2025-06-13 10:51:49 - root - INFO - Admin ID: 361833263
+2025-06-13 10:51:49 - root - INFO - Channel: @ChinaPack
+2025-06-13 10:51:49 - root - INFO - Timezone: Europe/Moscow
+2025-06-13 10:51:49 - root - INFO - Источников: 5
+2025-06-13 10:51:49 - root - INFO - Новые функции: настройки канала, временные зоны, улучшенные промпты
+2025-06-13 10:51:50 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getMe "HTTP/1.1 200 OK"
+2025-06-13 10:51:50 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/deleteWebhook "HTTP/1.1 200 OK"
+2025-06-13 10:51:50 - apscheduler.scheduler - INFO - Added job "check_releases_job" to job store "default"
+2025-06-13 10:51:50 - apscheduler.scheduler - INFO - Scheduler started
+2025-06-13 10:51:50 - telegram.ext.Application - INFO - Application started
+2025-06-13 10:51:55 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:51:55 - root - INFO - Команда /start от пользователя 361833263
+2025-06-13 10:51:55 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 10:51:58 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:51:58 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:51:58 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:00 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:00 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:00 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:02 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:02 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:02 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:03 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:03 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:03 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:04 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:04 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:04 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:05 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:05 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:05 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/deleteMessage "HTTP/1.1 200 OK"
+2025-06-13 10:52:06 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:06 - root - INFO - Команда /start от пользователя 361833263
+2025-06-13 10:52:06 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 10:52:09 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:09 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:09 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:09 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 10:52:09 - root - INFO - Ищу новые релизы...
+2025-06-13 10:52:10 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:10 - root - INFO - Проверяю источник: SneakerNews
+2025-06-13 10:52:12 - httpx - INFO - HTTP Request: GET https://sneakernews.com/wp-json/wp/v2/posts?per_page=10&_embed "HTTP/1.1 200 OK"
+2025-06-13 10:52:12 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:12 - root - INFO - Проверяю источник: Hypebeast Footwear
+2025-06-13 10:52:12 - httpx - INFO - HTTP Request: GET https://hypebeast.com/footwear/feed "HTTP/1.1 200 OK"
+2025-06-13 10:52:12 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:12 - root - INFO - Проверяю источник: Highsnobiety Sneakers
+2025-06-13 10:52:13 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/sneakers/feed/ "HTTP/1.1 301 Moved Permanently"
+2025-06-13 10:52:13 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/sneakers "HTTP/1.1 301 Moved Permanently"
+2025-06-13 10:52:13 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/sneakers/ "HTTP/1.1 200 OK"
+2025-06-13 10:52:13 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:13 - root - INFO - Проверяю источник: Hypebeast Fashion
+2025-06-13 10:52:14 - httpx - INFO - HTTP Request: GET https://hypebeast.com/fashion/feed "HTTP/1.1 200 OK"
+2025-06-13 10:52:14 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:14 - root - INFO - Проверяю источник: Highsnobiety Fashion
+2025-06-13 10:52:14 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/fashion/feed/ "HTTP/1.1 301 Moved Permanently"
+2025-06-13 10:52:15 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/fashion "HTTP/1.1 301 Moved Permanently"
+2025-06-13 10:52:16 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/fashion/ "HTTP/1.1 200 OK"
+2025-06-13 10:52:16 - root - INFO - Найдено 2 новых релизов всего
+2025-06-13 10:52:16 - root - INFO - Добавлено 2 новых постов в очередь
+2025-06-13 10:52:16 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:19 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:19 - root - INFO - Команда /start от пользователя 361833263
+2025-06-13 10:52:19 - apscheduler.executors.default - INFO - Running job "check_releases_job (trigger: interval[0:30:00], next run at: 2025-06-13 15:22:19 UTC)" (scheduled at 2025-06-13 14:52:19.590533+00:00)
+2025-06-13 10:52:19 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 10:52:20 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 10:52:20 - root - INFO - Ищу новые релизы...
+2025-06-13 10:52:20 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:20 - root - INFO - Проверяю источник: SneakerNews
+2025-06-13 10:52:20 - httpx - INFO - HTTP Request: GET https://sneakernews.com/wp-json/wp/v2/posts?per_page=10&_embed "HTTP/1.1 200 OK"
+2025-06-13 10:52:20 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:20 - root - INFO - Проверяю источник: Hypebeast Footwear
+2025-06-13 10:52:21 - httpx - INFO - HTTP Request: GET https://hypebeast.com/footwear/feed "HTTP/1.1 200 OK"
+2025-06-13 10:52:21 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:21 - root - INFO - Проверяю источник: Highsnobiety Sneakers
+2025-06-13 10:52:21 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/sneakers/feed/ "HTTP/1.1 301 Moved Permanently"
+2025-06-13 10:52:21 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/sneakers "HTTP/1.1 301 Moved Permanently"
+2025-06-13 10:52:21 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/sneakers/ "HTTP/1.1 200 OK"
+2025-06-13 10:52:21 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:21 - root - INFO - Проверяю источник: Hypebeast Fashion
+2025-06-13 10:52:22 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:22 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:22 - httpx - INFO - HTTP Request: GET https://hypebeast.com/fashion/feed "HTTP/1.1 200 OK"
+2025-06-13 10:52:22 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:22 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:22 - root - INFO - Проверяю источник: Highsnobiety Fashion
+2025-06-13 10:52:22 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/fashion/feed/ "HTTP/1.1 301 Moved Permanently"
+2025-06-13 10:52:22 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/fashion "HTTP/1.1 301 Moved Permanently"
+2025-06-13 10:52:22 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/fashion/ "HTTP/1.1 200 OK"
+2025-06-13 10:52:22 - root - INFO - Найдено 0 новых релизов всего
+2025-06-13 10:52:22 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:22 - apscheduler.executors.default - INFO - Job "check_releases_job (trigger: interval[0:30:00], next run at: 2025-06-13 15:22:19 UTC)" executed successfully
+2025-06-13 10:52:25 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:25 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:25 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:26 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:26 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:27 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:36 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:43 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:43 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:44 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:45 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:45 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:45 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:48 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:48 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 10:52:50 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:50 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 10:52:50 - root - INFO - Генерирую мысли для: описание темы... с моделью gpt-4o
+2025-06-13 10:52:55 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-13 10:52:55 - root - INFO - Мысли сгенерированы успешно
+2025-06-13 10:52:55 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:58 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:52:58 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 10:52:58 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 10:52:58 - root - INFO - Генерирую изображение: Artistic abstract representation of описание темы,...
+2025-06-13 10:53:08 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 10:53:09 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
+2025-06-13 10:53:10 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:12:04 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-06-13 11:12:04 - root - INFO - ✅ JobQueue настроен для периодических проверок
+2025-06-13 11:12:04 - root - INFO - === HypeBot запущен ===
+2025-06-13 11:12:04 - root - INFO - Admin ID: 361833263
+2025-06-13 11:12:04 - root - INFO - Channel: @ChinaPack
+2025-06-13 11:12:04 - root - INFO - Timezone: Europe/Moscow
+2025-06-13 11:12:04 - root - INFO - Источников: 5
+2025-06-13 11:12:04 - root - INFO - Новые функции: настройки канала, временные зоны, улучшенные промпты
+2025-06-13 11:12:04 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getMe "HTTP/1.1 200 OK"
+2025-06-13 11:12:04 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/deleteWebhook "HTTP/1.1 200 OK"
+2025-06-13 11:12:04 - apscheduler.scheduler - INFO - Added job "check_releases_job" to job store "default"
+2025-06-13 11:12:04 - apscheduler.scheduler - INFO - Scheduler started
+2025-06-13 11:12:04 - telegram.ext.Application - INFO - Application started
+2025-06-13 11:12:15 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:12:22 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:12:22 - root - INFO - Команда /start от пользователя 361833263
+2025-06-13 11:12:22 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 11:12:25 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:12:25 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 11:12:25 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:12:29 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:12:29 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 11:12:29 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:12:31 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:12:31 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 11:12:31 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:12:34 - apscheduler.executors.default - INFO - Running job "check_releases_job (trigger: interval[0:30:00], next run at: 2025-06-13 15:42:34 UTC)" (scheduled at 2025-06-13 15:12:34.240396+00:00)
+2025-06-13 11:12:34 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 11:12:34 - root - INFO - Ищу новые релизы...
+2025-06-13 11:12:34 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:12:34 - root - INFO - Проверяю источник: SneakerNews
+2025-06-13 11:12:36 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:12:36 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 11:12:36 - httpx - INFO - HTTP Request: GET https://sneakernews.com/wp-json/wp/v2/posts?per_page=10&_embed "HTTP/1.1 200 OK"
+2025-06-13 11:12:36 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:12:36 - root - INFO - Проверяю источник: Hypebeast Footwear
+2025-06-13 11:12:37 - httpx - INFO - HTTP Request: GET https://hypebeast.com/footwear/feed "HTTP/1.1 200 OK"
+2025-06-13 11:12:37 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:12:37 - root - INFO - Проверяю источник: Highsnobiety Sneakers
+2025-06-13 11:12:37 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/sneakers/feed/ "HTTP/1.1 301 Moved Permanently"
+2025-06-13 11:12:38 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/sneakers "HTTP/1.1 301 Moved Permanently"
+2025-06-13 11:12:38 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/sneakers/ "HTTP/1.1 200 OK"
+2025-06-13 11:12:38 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:12:38 - root - INFO - Проверяю источник: Hypebeast Fashion
+2025-06-13 11:12:39 - httpx - INFO - HTTP Request: GET https://hypebeast.com/fashion/feed "HTTP/1.1 200 OK"
+2025-06-13 11:12:39 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:12:39 - root - INFO - Проверяю источник: Highsnobiety Fashion
+2025-06-13 11:12:39 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/fashion/feed/ "HTTP/1.1 301 Moved Permanently"
+2025-06-13 11:12:39 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/fashion "HTTP/1.1 301 Moved Permanently"
+2025-06-13 11:12:39 - httpx - INFO - HTTP Request: GET https://www.highsnobiety.com/tag/fashion/ "HTTP/1.1 200 OK"
+2025-06-13 11:12:40 - root - INFO - Найдено 1 новых релизов всего
+2025-06-13 11:12:40 - root - INFO - Добавлено 1 новых постов в очередь
+2025-06-13 11:12:40 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:12:40 - root - INFO - Публикую в канал: Cat Footwear Reinterprets Engineering History in T...
+2025-06-13 11:12:40 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:12:41 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 11:12:41 - root - INFO - Генерирую мысли для: описание темы... с моделью gpt-4o
+2025-06-13 11:12:41 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMediaGroup "HTTP/1.1 200 OK"
+2025-06-13 11:12:41 - root - INFO - Опубликован запланированный пост: Cat Footwear Reinterprets Engineering History in T
+2025-06-13 11:12:41 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 11:12:41 - apscheduler.executors.default - INFO - Job "check_releases_job (trigger: interval[0:30:00], next run at: 2025-06-13 15:42:34 UTC)" executed successfully
+2025-06-13 11:12:43 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:12:44 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-13 11:12:44 - root - INFO - Мысли сгенерированы успешно
+2025-06-13 11:12:44 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:12:53 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:13:03 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:13:13 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:13:21 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:13:21 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 11:13:22 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:13:22 - root - INFO - Генерирую изображение: Artistic abstract representation of описание темы,...
+2025-06-13 11:13:31 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:13:33 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
+2025-06-13 11:13:34 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:13:41 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:13:51 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:13:54 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:13:54 - root - INFO - Команда /start от пользователя 361833263
+2025-06-13 11:13:54 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 11:13:56 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:13:56 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 11:13:56 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/editMessageText "HTTP/1.1 200 OK"
+2025-06-13 11:13:58 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:13:58 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 11:13:58 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/deleteMessage "HTTP/1.1 200 OK"
+2025-06-13 11:13:58 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 11:13:58 - httpx - INFO - HTTP Request: GET https://sneakernews.com/2025/06/13/new-balance-2000-black-grey-u2000ea/ "HTTP/1.1 200 OK"
+2025-06-13 11:13:58 - root - INFO - Найдено 10 изображений на странице https://sneakernews.com/2025/06/13/new-balance-2000-black-grey-u2000ea/
+2025-06-13 11:13:58 - root - INFO - Обновлено 10 изображений для поста The New Balance Abzorb 2000 Sw...
+2025-06-13 11:13:58 - root - INFO - Генерирую описание для: The New Balance Abzorb 2000 Switches Into Black An... с моделью gpt-4o
+2025-06-13 11:14:01 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-13 11:14:01 - root - INFO - Описание сгенерированы успешно
+2025-06-13 11:14:02 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/deleteMessage "HTTP/1.1 200 OK"
+2025-06-13 11:14:04 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMediaGroup "HTTP/1.1 200 OK"
+2025-06-13 11:14:04 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 11:14:08 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:14:15 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:14:16 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-06-13 11:14:16 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/deleteMessage "HTTP/1.1 200 OK"
+2025-06-13 11:14:16 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/sendMessage "HTTP/1.1 200 OK"
+2025-06-13 11:14:25 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:14:35 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:14:45 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:14:55 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:15:00 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7511712960:AAFJ_-2yoeCuHJqwya-MMWu_7-3HNZNePWI/getUpdates "HTTP/1.1 200 OK"
+2025-06-13 11:15:00 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-06-13 11:15:00 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-06-13 11:15:00 - telegram.ext.Application - INFO - Application.stop() complete
