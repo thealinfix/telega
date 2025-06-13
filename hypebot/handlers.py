@@ -127,7 +127,7 @@ async def skip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ])
                 
                 await update.message.reply_text(
-                    f"✅ Текст обновлен!
+                    f"✅ Текст обновлен!"
 
 "
                     f"💭 <b>Пост-размышление:</b>
@@ -274,7 +274,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ])
                 
                 await update.message.reply_text(
-                    f"✅ Текст обновлен!
+                    f"✅ Текст обновлен!"
 
 "
                     f"💭 <b>Пост-размышление:</b>
@@ -433,7 +433,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ])
                 
                 await update.message.reply_text(
-                    f"✅ Текст обновлен!
+                    f"✅ Текст обновлен!"
 
 "
                     f"💭 <b>Пост-размышление:</b>
@@ -518,7 +518,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ])
                 
                 await update.message.reply_text(
-                    f"✅ Текст обновлен!
+                    f"✅ Текст обновлен!"
 
 "
                     f"💭 <b>Пост-размышление:</b>
@@ -652,7 +652,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ])
                 
                 await update.message.reply_text(
-                    f"✅ Текст обновлен!
+                    f"✅ Текст обновлен!"
 
 "
                     f"💭 <b>Пост-размышление:</b>
