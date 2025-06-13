@@ -33,3 +33,7 @@ add_*.py
 .idea/
 *.swp
 *.swo
+
+# Python cache directories
+**/__pycache__/
+hypebot/__pycache__/
