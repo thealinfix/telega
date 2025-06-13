@@ -3,7 +3,8 @@ from telegram import InputMediaPhoto, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.error import TelegramError, BadRequest
 import httpx
-from . import config, state, utils, fetcher
+from . import config, utils, fetcher
+from .state import state, save_state
 from .openai_utils import openai_client
 
 async def gen_caption(title: str, context: str, category: str = "sneakers", is_thought: bool = False, image_description: str = "") -> str:
@@ -151,7 +152,7 @@ async def send_preview(bot, record: dict, chat_id: int, current_idx: int, total:
         # Сохраняем теги в запись
         if record["id"] in state["pending"]:
             state["pending"][record["id"]]["tags"] = tags
-            state.save_state()
+            save_state()
     
     tags_display = utils.format_tags_for_display(tags)
     
@@ -249,7 +250,7 @@ async def send_full_post(bot, record: dict, chat_id: int):
                 record = await fetcher.parse_full_content(client, record)
                 if record["id"] in state["pending"]:
                     state["pending"][record["id"]] = record
-                    state.save_state()
+                    save_state()
         
         # Генерируем описание
         if not record.get("description") or record.get("description") == record.get("title"):
@@ -262,7 +263,7 @@ async def send_full_post(bot, record: dict, chat_id: int):
             # Сохраняем в state
             if record["id"] in state["pending"]:
                 state["pending"][record["id"]]["description"] = description
-                state.save_state()
+                save_state()
         
         # Удаляем сообщение о загрузке
         await bot.delete_message(chat_id, loading_msg.message_id)

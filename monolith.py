@@ -10,7 +10,10 @@ import logging
 import asyncio
 import warnings
 import httpx
-from hypebot import config, state, utils, fetcher
+from hypebot import config, utils, fetcher
+from hypebot.fetcher import fetch_releases
+from hypebot.state import state, save_state, get_user_timezone, localize_datetime, clean_old_posts
+from hypebot import state as state_module
 from hypebot.openai_utils import generate_image, download_image, analyze_image
 
 from hypebot.messaging import gen_caption, build_media_group, send_preview, send_full_post, send_for_moderation, publish_release
@@ -93,7 +96,7 @@ async def check_releases_job(context: ContextTypes.DEFAULT_TYPE):
                 continue
         
         if added_count > 0:
-            state.save_state()
+            save_state()
             logging.info(f"Добавлено {added_count} новых постов в очередь")
             
             # Группируем посты по датам
@@ -179,7 +182,7 @@ async def check_scheduled_posts(bot):
             state["sent_links"].append(record["link"])
     
     if published:
-        state.save_state()
+        save_state()
 
 async def auto_publish_next(bot):
     """Автоматическая публикация следующего поста из избранного"""
@@ -207,7 +210,7 @@ async def auto_publish_next(bot):
                 state["favorites"].remove(fav_id)
                 state["pending"].pop(fav_id, None)
                 state["sent_links"].append(record["link"])
-                state.save_state()
+                save_state()
                 
                 if config.ADMIN_CHAT_ID:
                     await bot.send_message(
@@ -245,7 +248,7 @@ async def thoughts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "topic": topic,
             "message_id": update.message.message_id
         }
-        state.save_state()
+        save_state()
         
         # Показываем процесс
         msg = await update.message.reply_text(
@@ -261,7 +264,7 @@ async def skip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if state.get("waiting_for_image"):
         waiting_data = state["waiting_for_image"]
         state["waiting_for_image"] = None
-        state.save_state()
+        save_state()
         
         if waiting_data["type"] == "thoughts":
             # Генерируем мысли без изображения
@@ -288,7 +291,7 @@ async def skip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "text": final_text,
                 "topic": waiting_data["topic"]
             }
-            state.save_state()
+            save_state()
             
             await msg.edit_text(
                 f"💭 <b>Пост-размышление:</b>\n\n{final_text}",
@@ -308,7 +311,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         waiting_data = state["waiting_for_image"]
         state["waiting_for_image"] = None
-        state.save_state()
+        save_state()
         
         # Показываем процесс
         msg = await update.message.reply_text("🔍 Анализирую изображение...")
@@ -355,7 +358,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "image_description": image_description,
                 "image_url": photo.file_id  # Сохраняем file_id для отправки
             }
-            state.save_state()
+            save_state()
             
             await msg.edit_text(
                 f"💭 <b>Пост-размышление:</b>\n\n{final_text}\n\n"
@@ -447,7 +450,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 
             if data == "settings_channel":
                 state["waiting_for_channel"] = True
-                state.save_state()
+                save_state()
                 await query.edit_message_text(
                     "📢 <b>Изменение канала публикации</b>\n\n"
                     "Отправьте новый канал в формате:\n"
@@ -470,7 +473,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 
             timezone_name = data.replace("tz_", "").replace("_", "/")
             state["timezone"] = timezone_name
-            state.save_state()
+            save_state()
             
             await query.edit_message_text(
                 f"✅ Временная зона изменена на {timezone_name}\n\n"
@@ -487,13 +490,13 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             if data == "auto_toggle":
                 state["auto_publish"] = not state.get("auto_publish", False)
-                state.save_state()
+                save_state()
                 await show_auto_publish_menu(query)
                 return
             elif data.startswith("auto_interval:"):
                 interval = int(data.split(":")[1])
                 state["publish_interval"] = interval
-                state.save_state()
+                save_state()
                 await show_auto_publish_menu(query)
                 return
         
@@ -508,7 +511,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 state["favorites"].append(uid)
             
-            state.save_state()
+            save_state()
             
             # Обновляем превью
             preview_list = state.get("preview_mode", {}).get("list", [])
@@ -536,7 +539,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 before_count = len(state["pending"])
                 removed = clean_old_posts(state)
                 after_count = len(state["pending"])
-                state.save_state()
+                save_state()
                 
                 await query.edit_message_text(
                     f"🗑 <b>Очистка завершена:</b>\n\n"
@@ -552,14 +555,14 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 state["pending"].clear()
                 state["preview_mode"].clear()
                 state["generated_images"].clear()
-                state.save_state()
+                save_state()
                 
                 await query.edit_message_text(f"🗑 Очищено {count} постов из очереди")
                 return
             elif data == "clean_sent":
                 count = len(state["sent_links"])
                 state["sent_links"].clear()
-                state.save_state()
+                save_state()
                 
                 await query.edit_message_text(f"🗑 Очищен список обработанных: {count} записей")
                 return
@@ -579,9 +582,9 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if data.startswith("schedule:"):
             uid = data.split(":")[1]
             state["waiting_for_schedule"] = uid
-            state.save_state()
+            save_state()
             
-            user_tz = state.get_user_timezone()
+            user_tz = get_user_timezone()
             await query.edit_message_text(
                 f"⏰ <b>Планирование публикации</b>\n\n"
                 f"Ваша временная зона: {state.get('timezone', config.DEFAULT_TIMEZONE)}\n"
@@ -601,13 +604,13 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if data.startswith("edit_schedule:"):
             post_id = data.split(":")[1]
             state["editing_schedule"] = post_id
-            state.save_state()
+            save_state()
             
             schedule_info = state["scheduled_posts"].get(post_id)
             if schedule_info:
                 scheduled_time = datetime.fromisoformat(schedule_info["time"].replace('Z', '+00:00'))
-                local_time = state.localize_datetime(scheduled_time)
-                user_tz = state.get_user_timezone()
+                local_time = localize_datetime(scheduled_time)
+                user_tz = get_user_timezone()
                 
                 await query.edit_message_text(
                     f"📝 <b>Изменение времени публикации</b>\n\n"
@@ -627,7 +630,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             post_id = data.split(":")[1]
             if post_id in state.get("scheduled_posts", {}):
                 state["scheduled_posts"].pop(post_id)
-                state.save_state()
+                save_state()
                 await query.edit_message_text("✅ Пост удален из расписания")
             return
         
@@ -635,7 +638,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if data.startswith("custom_prompt:"):
             uid = data.split(":")[1]
             state["waiting_for_prompt"] = uid
-            state.save_state()
+            save_state()
             
             await query.edit_message_text(
                 "✏️ <b>Создание кастомной обложки</b>\n\n"
@@ -678,7 +681,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "current": 0,
                 "filter": None
             }
-            state.save_state()
+            save_state()
             
             await query.edit_message_text("✅ Фильтры сброшены")
             
@@ -758,7 +761,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     
                     # Обновляем запись
                     state["pending"][uid] = record
-                    state.save_state()
+                    save_state()
                     
                     await query.message.edit_text("✅ Обложка сгенерирована!")
                     
@@ -775,7 +778,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             record = state["pending"].get(uid)
             if record:
                 state["generated_images"].pop(uid, None)
-                state.save_state()
+                save_state()
                 
                 await query.message.edit_text("✅ Возвращены оригинальные изображения")
                 await send_for_moderation(context.bot, record)
@@ -822,7 +825,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         )
                     await query.edit_message_text("✅ Мысли опубликованы!")
                     state.pop("current_thought", None)
-                    state.save_state()
+                    save_state()
                 except Exception as e:
                     await query.edit_message_text(f"❌ Ошибка публикации: {e}")
             return
@@ -844,7 +847,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 final_text = f"{new_thought}\n\n{hashtags}"
                 
                 state["current_thought"]["text"] = final_text
-                state.save_state()
+                save_state()
                 
                 keyboard = InlineKeyboardMarkup([
                     [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
@@ -874,7 +877,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if image_url:
                     thought_data["image_url"] = image_url
                     state["current_thought"] = thought_data
-                    state.save_state()
+                    save_state()
                     
                     keyboard = InlineKeyboardMarkup([
                         [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
@@ -896,7 +899,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif data == "cancel_thought":
             await query.message.delete()
             state.pop("current_thought", None)
-            state.save_state()
+            save_state()
             return
         
         elif data == "noop":
@@ -929,7 +932,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         state["sent_links"] = state["sent_links"][-500:]
                 state["pending"].pop(uid, None)
                 state["generated_images"].pop(uid, None)
-                state.save_state()
+                save_state()
             else:
                 await query.edit_message_text(f"🚨 Ошибка публикации: {record['title'][:50]}...")
         
@@ -937,7 +940,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(f"❌ Пропущено: {record['title'][:50]}...")
             state["pending"].pop(uid, None)
             state["generated_images"].pop(uid, None)
-            state.save_state()
+            save_state()
         
         elif action == "regen":
             await query.edit_message_text(f"🔄 Регенерирую описание для: {record['title'][:50]}...")
@@ -949,7 +952,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             new_description = await gen_caption(record["title"], context_text, record.get("category", "sneakers"))
             record["description"] = new_description
             state["pending"][uid] = record
-            state.save_state()
+            save_state()
             
             await send_for_moderation(context.bot, record, show_all=False)
             
@@ -1037,7 +1040,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
             if new_channel.startswith("@") or (new_channel.lstrip("-").isdigit() and len(new_channel) > 5):
                 state["channel"] = new_channel
                 state["waiting_for_channel"] = False
-                state.save_state()
+                save_state()
                 
                 await update.message.reply_text(
                     f"✅ Канал изменен на: <code>{new_channel}</code>\n\n"
@@ -1067,9 +1070,9 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                     }
                     
                     state["waiting_for_schedule"] = None
-                    state.save_state()
+                    save_state()
                     
-                    local_time = state.localize_datetime(scheduled_time)
+                    local_time = localize_datetime(scheduled_time)
                     await update.message.reply_text(
                         f"✅ Пост запланирован на {local_time.strftime('%d.%m.%Y %H:%M')} ({state.get('timezone', config.DEFAULT_TIMEZONE)})\n"
                         f"📝 {record['title'][:50]}..."
@@ -1095,9 +1098,9 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                 if post_id in state.get("scheduled_posts", {}):
                     state["scheduled_posts"][post_id]["time"] = scheduled_time.isoformat()
                     state["editing_schedule"] = None
-                    state.save_state()
+                    save_state()
                     
-                    local_time = state.localize_datetime(scheduled_time)
+                    local_time = localize_datetime(scheduled_time)
                     await update.message.reply_text(
                         f"✅ Время изменено на {local_time.strftime('%d.%m.%Y %H:%M')} ({state.get('timezone', config.DEFAULT_TIMEZONE)})"
                     )
@@ -1124,7 +1127,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                     
                     state["generated_images"][uid].append(image_url)
                     state["waiting_for_prompt"] = None
-                    state.save_state()
+                    save_state()
                     
                     await update.message.reply_text("✅ Изображение сгенерировано!")
                     await send_for_moderation(context.bot, record)
@@ -1140,7 +1143,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                 if 10 <= minutes <= 1440:  # От 10 минут до 24 часов
                     state["publish_interval"] = minutes * 60
                     state["auto_interval_custom"] = False
-                    state.save_state()
+                    save_state()
                     await update.message.reply_text(f"✅ Интервал установлен: {minutes} минут")
                 else:
                     await update.message.reply_text("❌ Интервал должен быть от 10 до 1440 минут")
@@ -1182,7 +1185,7 @@ async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         state["waiting_for_channel"] = False
         cancelled.append("изменение канала")
     
-    state.save_state()
+    save_state()
     
     if cancelled:
         await update.message.reply_text(f"❌ Отменено: {', '.join(cancelled)}")
@@ -1438,7 +1441,7 @@ async def start_preview_mode(query, context):
             "list": preview_list,
             "current": 0
         }
-        state.save_state()
+        save_state()
         
         # Показываем первый пост без удаления сообщения
         first_record = state["pending"].get(preview_list[0])
@@ -1474,7 +1477,7 @@ async def show_status_info(query):
                 key=lambda x: x[1]["time"]
             )
             next_time = datetime.fromisoformat(next_post[1]["time"].replace('Z', '+00:00'))
-            local_time = state.localize_datetime(next_time)
+            local_time = localize_datetime(next_time)
             next_scheduled = f"⏰ Следующий пост: {local_time.strftime('%d.%m %H:%M')} ({state.get('timezone', config.DEFAULT_TIMEZONE)})"
         
         # Последние 3 поста
@@ -1531,7 +1534,7 @@ async def show_scheduled_posts(query):
             
             for post_id, info in sorted(scheduled.items(), key=lambda x: x[1]["time"]):
                 scheduled_time = datetime.fromisoformat(info["time"].replace('Z', '+00:00'))
-                local_time = state.localize_datetime(scheduled_time)
+                local_time = localize_datetime(scheduled_time)
                 record = info["record"]
                 
                 text += (
@@ -1707,7 +1710,7 @@ async def filter_posts_by_tag(query, context, tag_type: str, tag_value: str):
         "current": 0,
         "filter": {tag_type: tag_value}
     }
-    state.save_state()
+    save_state()
     
     await query.edit_message_text(
         f"✅ Найдено {len(filtered_posts)} постов с тегом {tag_value}"
@@ -1812,7 +1815,7 @@ async def reset_state_command(update: Update, context: ContextTypes.DEFAULT_TYPE
             "channel": config.TELEGRAM_CHANNEL,
             "waiting_for_channel": False
         }
-        state.save_state()
+        save_state()
         
         await update.message.reply_text(
             "✅ Состояние бота сброшено!\n\n"
