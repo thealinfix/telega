@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 from bs4 import BeautifulSoup, FeatureNotFound
 
 from . import config
-from . import state
+from .state import state, get_user_timezone, localize_datetime, format_local_time
 
 
 def make_id(source: str, link: str) -> str:
@@ -136,8 +136,8 @@ def format_date_for_display(date_str: str) -> str:
             date = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
         else:
             date = date_str
-        local_date = state.localize_datetime(date)
-        now = state.localize_datetime(datetime.now(timezone.utc))
+        local_date = localize_datetime(date)
+        now = localize_datetime(datetime.now(timezone.utc))
         diff = now - local_date
         if diff.days == 0:
             return "Сегодня"
@@ -166,7 +166,7 @@ def parse_date_from_rss(item) -> datetime:
 def parse_schedule_time(text: str) -> Optional[datetime]:
     try:
         text = text.strip()
-        user_tz = state.get_user_timezone()
+        user_tz = get_user_timezone()
         now = datetime.now(user_tz)
         time_match = re.match(r"^(\d{1,2}):(\d{2})$", text)
         if time_match:

@@ -3,19 +3,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import logging
-from telegram import Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    CallbackQueryHandler,
-    ContextTypes,
-    MessageHandler,
-    filters,
+
 )
 from telegram.error import Conflict
 
-from hypebot import config, state
-from hypebot import handlers, tasks
 
 
 # --- Проверка конфигурации ---
@@ -31,9 +22,6 @@ if config.ADMIN_CHAT_ID and config.ADMIN_CHAT_ID != "123456789":
         exit(1)
 else:
     config.ADMIN_CHAT_ID = None
-
-
-def main() -> None:
     try:
         app = Application.builder().token(config.TELEGRAM_TOKEN).connect_timeout(30).read_timeout(30).build()
 
