@@ -988,6 +988,91 @@ async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         state["waiting_for_channel"] = False
         cancelled.append("изменение канала")
     
+
+
+
+
+
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
+    
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
+    
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
+    
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
+    
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
+    
     save_state()
     
     if cancelled:
@@ -1629,3 +1714,423 @@ async def reset_state_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         logging.error(f"Ошибка в reset_state_command: {e}")
         await update.message.reply_text("❌ Произошла ошибка при сбросе состояния")
 
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
