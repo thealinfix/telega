@@ -7,11 +7,9 @@ load_dotenv()  # Загружаем переменные окружения из
 import os
 import json
 import logging
-import hashlib
 import asyncio
 import warnings
 import httpx
-import base64
 from hypebot import config, state, utils, fetcher
 from hypebot.openai_utils import generate_image, download_image, analyze_image
 
@@ -38,129 +36,6 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 # Временная зона (по умолчанию Москва)
 
-# Стили для генерации изображений
-config.IMAGE_STYLES = {
-    "sneakers": {
-        "prompt_template": "Modern minimalist sneaker promotional image, {title}, clean background, professional product photography, studio lighting, high quality, 4k",
-        "style": "photographic"
-    },
-    "fashion": {
-        "prompt_template": "Fashion editorial style image, {title}, trendy streetwear aesthetic, urban background, magazine quality",
-        "style": "editorial"
-    },
-    "thoughts": {
-        "prompt_template": "Artistic abstract representation of {topic}, modern digital art, vibrant colors, emotional expression, Instagram story format",
-        "style": "artistic"
-    },
-    "custom": {
-        "prompt_template": "{custom_prompt}",
-        "style": "creative"
-    }
-}
-
-# Хэштеги для постов
-config.HASHTAGS = {
-    "sneakers": {
-        "nike": "#nike #sneakers #кроссовки #найк #никебутик",
-        "adidas": "#adidas #sneakers #кроссовки #адидас #threestripes", 
-        "jordan": "#jordan #airjordan #кроссовки #джордан #jumpman",
-        "newbalance": "#newbalance #nb #кроссовки #ньюбаланс #madeinusa",
-        "puma": "#puma #sneakers #кроссовки #пума #pumafamily",
-        "yeezy": "#yeezy #adidas #кроссовки #изи #kanye",
-        "asics": "#asics #sneakers #кроссовки #асикс #geltechnology",
-        "reebok": "#reebok #sneakers #кроссовки #рибок #classic",
-        "vans": "#vans #sneakers #кроссовки #ванс #offthewall",
-        "converse": "#converse #sneakers #кроссовки #конверс #allstar",
-        "default": "#sneakers #кроссовки #streetwear #обувь #sneakerhead"
-    },
-    "fashion": {
-        "supreme": "#supreme #streetwear #fashion #суприм #hypebeast",
-        "offwhite": "#offwhite #fashion #streetwear #virgilabloh",
-        "stussy": "#stussy #streetwear #fashion #stussytribe",
-        "palace": "#palace #streetwear #fashion #palaceskateboards",
-        "default": "#fashion #мода #streetwear #style #стиль #outfit"
-    }
-}
-
-# Расширенный список источников
-config.SOURCES = [
-    {
-        "key": "sneakernews", 
-        "name": "SneakerNews", 
-        "type": "json", 
-        "api": "https://sneakernews.com/wp-json/wp/v2/posts?per_page=10&_embed",
-        "category": "sneakers"
-    },
-    {
-        "key": "hypebeast", 
-        "name": "Hypebeast Footwear", 
-        "type": "rss", 
-        "api": "https://hypebeast.com/footwear/feed",
-        "category": "sneakers"
-    },
-    {
-        "key": "highsnobiety", 
-        "name": "Highsnobiety Sneakers", 
-        "type": "rss", 
-        "api": "https://www.highsnobiety.com/tag/sneakers/feed/",
-        "category": "sneakers"
-    },
-    {
-        "key": "hypebeast_fashion", 
-        "name": "Hypebeast Fashion", 
-        "type": "rss", 
-        "api": "https://hypebeast.com/fashion/feed",
-        "category": "fashion"
-    },
-    {
-        "key": "highsnobiety_fashion", 
-        "name": "Highsnobiety Fashion", 
-        "type": "rss", 
-        "api": "https://www.highsnobiety.com/tag/fashion/feed/",
-        "category": "fashion"
-    }
-]
-
-# Система тегов и брендов
-config.BRAND_KEYWORDS = {
-    "nike": ["nike", "air max", "air force", "dunk", "blazer", "cortez", "vapormax", "pegasus"],
-    "adidas": ["adidas", "yeezy", "boost", "ultraboost", "nmd", "gazelle", "samba", "campus"],
-    "jordan": ["jordan", "air jordan", "aj1", "aj4", "aj11", "jumpman"],
-    "newbalance": ["new balance", "nb", "990", "991", "992", "993", "2002r", "550"],
-    "asics": ["asics", "gel", "gel-lyte", "gel-kayano", "gel-1090"],
-    "puma": ["puma", "suede", "clyde", "rs-x"],
-    "reebok": ["reebok", "classic", "club c", "question"],
-    "vans": ["vans", "old skool", "sk8-hi", "authentic", "era"],
-    "converse": ["converse", "chuck taylor", "all star", "one star"],
-    "salomon": ["salomon", "xt-6", "speedcross"],
-    "supreme": ["supreme", "box logo"],
-    "offwhite": ["off-white", "off white", "virgil abloh"],
-    "stussy": ["stussy", "stüssy"],
-    "palace": ["palace", "palace skateboards"]
-}
-
-# Модели кроссовок
-config.MODEL_KEYWORDS = {
-    "airmax": ["air max", "airmax", "am1", "am90", "am95", "am97"],
-    "airforce": ["air force", "af1", "air force 1"],
-    "dunk": ["dunk", "dunk low", "dunk high", "sb dunk"],
-    "yeezy": ["yeezy", "boost 350", "boost 700", "foam runner"],
-    "jordan1": ["jordan 1", "aj1", "air jordan 1"],
-    "jordan4": ["jordan 4", "aj4", "air jordan 4"],
-    "ultraboost": ["ultraboost", "ultra boost"],
-    "990": ["990", "990v", "990v5", "990v6"]
-}
-
-# Типы релизов
-config.RELEASE_TYPES = {
-    "retro": ["retro", "og", "original", "vintage"],
-    "collab": ["collab", "collaboration", "x ", " x ", "partner"],
-    "limited": ["limited", "exclusive", "rare", "special edition"],
-    "womens": ["women", "wmns", "female"],
-    "kids": ["kids", "gs", "gradeschool", "youth"],
-    "lifestyle": ["lifestyle", "casual", "street"],
-    "performance": ["performance", "running", "basketball", "training"]
-}
 
 # --- Проверка конфигурации ---
 if not all([config.TELEGRAM_TOKEN, config.OPENAI_API_KEY]):
@@ -176,326 +51,7 @@ if config.ADMIN_CHAT_ID and config.ADMIN_CHAT_ID != "123456789":
         exit(1)
 else:
     config.ADMIN_CHAT_ID = None
-
-# Инициализация OpenAI клиента
-
-def get_user_timezone():
-    """Получить временную зону пользователя"""
-    return pytz.timezone(state.get("timezone", config.DEFAULT_TIMEZONE))
-
-def localize_datetime(dt: datetime) -> datetime:
-    """Конвертировать UTC время в локальное"""
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    user_tz = get_user_timezone()
-    return dt.astimezone(user_tz)
-
-def format_local_time(dt: datetime) -> str:
-    """Форматировать время в локальной временной зоне"""
-    local_dt = localize_datetime(dt)
-    return local_dt.strftime("%d.%m.%Y %H:%M")
-
-def clean_old_posts(state_dict):
-    """Очистка старых постов из очереди"""
-    now = datetime.now(timezone.utc)
-    removed_count = 0
     
-    # Очищаем старые посты
-    for uid in list(state_dict["pending"].keys()):
-        post = state_dict["pending"][uid]
-        try:
-            post_date = datetime.fromisoformat(post.get("timestamp", "").replace('Z', '+00:00'))
-            age = now - post_date
-            
-            if age.days > config.MAX_POST_AGE_DAYS:
-                del state_dict["pending"][uid]
-                removed_count += 1
-        except:
-            continue
-    
-    # Ограничиваем количество постов
-    if len(state_dict["pending"]) > config.MAX_PENDING_POSTS:
-        sorted_posts = sorted(
-            state_dict["pending"].items(),
-            key=lambda x: x[1].get("timestamp", ""),
-            reverse=True
-        )
-        
-        state_dict["pending"] = dict(sorted_posts[:config.MAX_PENDING_POSTS])
-        removed_count += len(sorted_posts) - config.MAX_PENDING_POSTS
-    
-    if removed_count > 0:
-        logging.info(f"Удалено {removed_count} старых постов")
-    
-    return removed_count
-
-def load_state():
-    try:
-        with open(config.STATE_FILE, "r", encoding="utf-8") as f:
-            state = json.load(f)
-            # Инициализация полей
-            defaults = {
-                "sent_links": [],
-                "pending": {},
-                "moderation_queue": [],
-                "preview_mode": {},
-                "thoughts_mode": False,
-                "scheduled_posts": {},
-                "generated_images": {},
-                "waiting_for_image": None,
-                "current_thought": None,
-                "waiting_for_schedule": None,
-                "editing_schedule": None,
-                "favorites": [],
-                "auto_publish": False,
-                "publish_interval": 3600,
-                "timezone": config.DEFAULT_TIMEZONE,
-                "channel": config.TELEGRAM_CHANNEL,
-                "waiting_for_channel": False
-            }
-            
-            for key, default_value in defaults.items():
-                if key not in state:
-                    state[key] = default_value
-            
-            # Валидация pending записей
-            valid_pending = {}
-            for uid, record in state["pending"].items():
-                if isinstance(record, dict) and all(key in record for key in ['id', 'title', 'link']):
-                    valid_pending[uid] = record
-                else:
-                    logging.warning(f"Удаляю некорректную запись из pending: {uid}")
-            state["pending"] = valid_pending
-            
-            # Очистка старых постов
-            clean_old_posts(state)
-            
-            return state
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        logging.info(f"Создаю новый файл состояния: {e}")
-        return {
-            "sent_links": [], 
-            "pending": {}, 
-            "moderation_queue": [], 
-            "preview_mode": {}, 
-            "thoughts_mode": False,
-            "scheduled_posts": {},
-            "generated_images": {},
-            "waiting_for_image": None,
-            "current_thought": None,
-            "waiting_for_schedule": None,
-            "editing_schedule": None,
-            "favorites": [],
-            "auto_publish": False,
-            "publish_interval": 3600,
-            "timezone": config.DEFAULT_TIMEZONE,
-            "channel": config.TELEGRAM_CHANNEL,
-            "waiting_for_channel": False
-        }
-
-state = load_state()
-
-def save_state():
-    try:
-        with open(config.STATE_FILE, "w", encoding="utf-8") as f:
-            json.dump(state, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        logging.error(f"Ошибка при сохранении состояния: {e}")
-
-def make_id(source: str, link: str) -> str:
-    return hashlib.md5(f"{source}|{link}".encode()).hexdigest()[:12]
-
-def is_valid_image_url(url: str) -> bool:
-    if not url or not isinstance(url, str):
-        return False
-    parsed = urlparse(url)
-    if not parsed.scheme or not parsed.netloc:
-        return False
-    valid_extensions = ('.jpg', '.jpeg', '.png', '.gif', '.webp')
-    return any(parsed.path.lower().endswith(ext) for ext in valid_extensions)
-
-async def validate_image_url(client: httpx.AsyncClient, url: str) -> bool:
-    try:
-        response = await client.head(url, timeout=10, follow_redirects=True)
-        content_type = response.headers.get('content-type', '')
-        return response.status_code == 200 and content_type.startswith('image/')
-    except Exception as e:
-        logging.debug(f"Ошибка валидации изображения {url}: {e}")
-        return False
-
-def extract_tags(title: str, context: str = "") -> Dict[str, List[str]]:
-    """Извлечение тегов из заголовка и контекста"""
-    tags = {
-        "brands": [],
-        "models": [],
-        "types": [],
-        "colors": []
-    }
-    
-    text = f"{title} {context}".lower()
-    
-    # Извлекаем бренды
-    for brand, keywords in config.BRAND_KEYWORDS.items():
-        for keyword in keywords:
-            if keyword in text:
-                if brand not in tags["brands"]:
-                    tags["brands"].append(brand)
-                break
-    
-    # Извлекаем модели
-    for model, keywords in config.MODEL_KEYWORDS.items():
-        for keyword in keywords:
-            if keyword in text:
-                if model not in tags["models"]:
-                    tags["models"].append(model)
-                break
-    
-    # Извлекаем типы релизов
-    for release_type, keywords in config.RELEASE_TYPES.items():
-        for keyword in keywords:
-            if keyword in text:
-                if release_type not in tags["types"]:
-                    tags["types"].append(release_type)
-                break
-    
-    # Извлекаем цвета
-    colors = ["black", "white", "red", "blue", "green", "yellow", "purple", "pink", "orange", "grey", "gray", 
-              "черный", "белый", "красный", "синий", "зеленый", "желтый", "фиолетовый", "розовый", "оранжевый", "серый"]
-    for color in colors:
-        if color in text:
-            color_en = color if color in ["black", "white", "red", "blue", "green", "yellow", "purple", "pink", "orange", "grey", "gray"] else None
-            if color_en and color_en not in tags["colors"]:
-                tags["colors"].append(color_en)
-    
-    return tags
-
-def format_tags_for_display(tags: Dict[str, List[str]]) -> str:
-    """Форматирование тегов для отображения"""
-    result = []
-    
-    if tags.get("brands"):
-        result.append(f"🏷 Бренд: {', '.join(tags['brands'])}")
-    if tags.get("models"):
-        result.append(f"👟 Модель: {', '.join(tags['models'])}")
-    if tags.get("types"):
-        result.append(f"📌 Тип: {', '.join(tags['types'])}")
-    if tags.get("colors"):
-        result.append(f"🎨 Цвет: {', '.join(tags['colors'])}")
-    
-    return "\n".join(result) if result else ""
-
-def get_hashtags(title: str, category: str) -> str:
-    """Генерация хэштегов на основе заголовка и категории"""
-    title_lower = title.lower()
-    
-    if category == "sneakers":
-        # Проверяем бренды
-        for brand, tags in config.HASHTAGS["sneakers"].items():
-            if brand != "default":
-                if brand in title_lower or (brand == "jordan" and "air jordan" in title_lower):
-                    return tags
-        return config.HASHTAGS["sneakers"]["default"]
-    else:
-        # Для моды
-        for brand, tags in config.HASHTAGS["fashion"].items():
-            if brand != "default":
-                if brand in title_lower or (brand == "offwhite" and "off-white" in title_lower):
-                    return tags
-        return config.HASHTAGS["fashion"]["default"]
-
-def format_date_for_display(date_str: str) -> str:
-    """Форматирование даты для отображения"""
-    try:
-        if isinstance(date_str, str):
-            date = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
-        else:
-            date = date_str
-        
-        # Конвертируем в локальное время
-        local_date = localize_datetime(date)
-        now = localize_datetime(datetime.now(timezone.utc))
-        diff = now - local_date
-        
-        if diff.days == 0:
-            return "Сегодня"
-        elif diff.days == 1:
-            return "Вчера"
-        elif diff.days < 7:
-            return f"{diff.days} дней назад"
-        else:
-            return local_date.strftime("%d.%m.%Y")
-    except:
-        return "Недавно"
-
-def parse_date_from_rss(item) -> datetime:
-    """Парсинг даты из RSS элемента"""
-    try:
-        date_elem = item.find("pubDate") or item.find("published") or item.find("dc:date")
-        if date_elem:
-            date_str = date_elem.get_text(strip=True)
-            from email.utils import parsedate_to_datetime
-            return parsedate_to_datetime(date_str)
-    except:
-        pass
-    return datetime.now(timezone.utc)
-
-def parse_schedule_time(text: str) -> Optional[datetime]:
-    """Парсинг времени/даты из текста с учетом временной зоны"""
-    try:
-        text = text.strip()
-        user_tz = get_user_timezone()
-        now = datetime.now(user_tz)
-        
-        # Проверяем разные форматы
-        # 1. Только время ЧЧ:ММ
-        time_match = re.match(r'^(\d{1,2}):(\d{2})$', text)
-        if time_match:
-            hours = int(time_match.group(1))
-            minutes = int(time_match.group(2))
-            if 0 <= hours <= 23 and 0 <= minutes <= 59:
-                scheduled = now.replace(hour=hours, minute=minutes, second=0, microsecond=0)
-                if scheduled <= now:
-                    scheduled += timedelta(days=1)
-                # Конвертируем в UTC для хранения
-                return scheduled.astimezone(timezone.utc)
-        
-        # 2. Дата и время ДД.ММ ЧЧ:ММ
-        datetime_match = re.match(r'^(\d{1,2})\.(\d{1,2})\s+(\d{1,2}):(\d{2})$', text)
-        if datetime_match:
-            day = int(datetime_match.group(1))
-            month = int(datetime_match.group(2))
-            hours = int(datetime_match.group(3))
-            minutes = int(datetime_match.group(4))
-            year = now.year
-            
-            # Проверяем валидность
-            if 1 <= day <= 31 and 1 <= month <= 12 and 0 <= hours <= 23 and 0 <= minutes <= 59:
-                scheduled = user_tz.localize(datetime(year, month, day, hours, minutes))
-                # Если дата в прошлом, берем следующий год
-                if scheduled < now:
-                    scheduled = scheduled.replace(year=year + 1)
-                return scheduled.astimezone(timezone.utc)
-        
-        # 3. Относительное время +1h, +30m, +2d
-        relative_match = re.match(r'^\+(\d+)([hmd])$', text.lower())
-        if relative_match:
-            amount = int(relative_match.group(1))
-            unit = relative_match.group(2)
-            
-            utc_now = datetime.now(timezone.utc)
-            if unit == 'h' and 1 <= amount <= 24:
-                return utc_now + timedelta(hours=amount)
-            elif unit == 'm' and 1 <= amount <= 1440:
-                return utc_now + timedelta(minutes=amount)
-            elif unit == 'd' and 1 <= amount <= 30:
-                return utc_now + timedelta(days=amount)
-        
-    except Exception as e:
-        logging.error(f"Ошибка парсинга времени: {e}")
-    
-    return None
-
-
 async def check_releases_job(context: ContextTypes.DEFAULT_TYPE):
     bot = context.bot
     
@@ -537,13 +93,13 @@ async def check_releases_job(context: ContextTypes.DEFAULT_TYPE):
                 continue
         
         if added_count > 0:
-            save_state()
+            state.save_state()
             logging.info(f"Добавлено {added_count} новых постов в очередь")
             
             # Группируем посты по датам
             posts_by_date = {}
             for post in state["pending"].values():
-                date_str = format_date_for_display(post.get("timestamp", ""))
+                date_str = utils.format_date_for_display(post.get("timestamp", ""))
                 if date_str not in posts_by_date:
                     posts_by_date[date_str] = []
                 posts_by_date[date_str].append(post)
@@ -623,7 +179,7 @@ async def check_scheduled_posts(bot):
             state["sent_links"].append(record["link"])
     
     if published:
-        save_state()
+        state.save_state()
 
 async def auto_publish_next(bot):
     """Автоматическая публикация следующего поста из избранного"""
@@ -651,7 +207,7 @@ async def auto_publish_next(bot):
                 state["favorites"].remove(fav_id)
                 state["pending"].pop(fav_id, None)
                 state["sent_links"].append(record["link"])
-                save_state()
+                state.save_state()
                 
                 if config.ADMIN_CHAT_ID:
                     await bot.send_message(
@@ -689,7 +245,7 @@ async def thoughts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "topic": topic,
             "message_id": update.message.message_id
         }
-        save_state()
+        state.save_state()
         
         # Показываем процесс
         msg = await update.message.reply_text(
@@ -705,7 +261,7 @@ async def skip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if state.get("waiting_for_image"):
         waiting_data = state["waiting_for_image"]
         state["waiting_for_image"] = None
-        save_state()
+        state.save_state()
         
         if waiting_data["type"] == "thoughts":
             # Генерируем мысли без изображения
@@ -718,7 +274,7 @@ async def skip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 is_thought=True
             )
             
-            hashtags = get_hashtags(waiting_data["topic"], "sneakers")
+            hashtags = utils.get_hashtags(waiting_data["topic"], "sneakers")
             final_text = f"{thought_text}\n\n{hashtags}"
             
             keyboard = InlineKeyboardMarkup([
@@ -732,7 +288,7 @@ async def skip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "text": final_text,
                 "topic": waiting_data["topic"]
             }
-            save_state()
+            state.save_state()
             
             await msg.edit_text(
                 f"💭 <b>Пост-размышление:</b>\n\n{final_text}",
@@ -752,7 +308,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         waiting_data = state["waiting_for_image"]
         state["waiting_for_image"] = None
-        save_state()
+        state.save_state()
         
         # Показываем процесс
         msg = await update.message.reply_text("🔍 Анализирую изображение...")
@@ -779,7 +335,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 image_description=image_description
             )
             
-            hashtags = get_hashtags(waiting_data["topic"], "sneakers")
+            hashtags = utils.get_hashtags(waiting_data["topic"], "sneakers")
             final_text = f"{thought_text}\n\n{hashtags}"
             
             # Загружаем изображение в Telegram для использования
@@ -799,7 +355,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "image_description": image_description,
                 "image_url": photo.file_id  # Сохраняем file_id для отправки
             }
-            save_state()
+            state.save_state()
             
             await msg.edit_text(
                 f"💭 <b>Пост-размышление:</b>\n\n{final_text}\n\n"
@@ -891,7 +447,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 
             if data == "settings_channel":
                 state["waiting_for_channel"] = True
-                save_state()
+                state.save_state()
                 await query.edit_message_text(
                     "📢 <b>Изменение канала публикации</b>\n\n"
                     "Отправьте новый канал в формате:\n"
@@ -914,7 +470,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 
             timezone_name = data.replace("tz_", "").replace("_", "/")
             state["timezone"] = timezone_name
-            save_state()
+            state.save_state()
             
             await query.edit_message_text(
                 f"✅ Временная зона изменена на {timezone_name}\n\n"
@@ -931,13 +487,13 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             if data == "auto_toggle":
                 state["auto_publish"] = not state.get("auto_publish", False)
-                save_state()
+                state.save_state()
                 await show_auto_publish_menu(query)
                 return
             elif data.startswith("auto_interval:"):
                 interval = int(data.split(":")[1])
                 state["publish_interval"] = interval
-                save_state()
+                state.save_state()
                 await show_auto_publish_menu(query)
                 return
         
@@ -952,7 +508,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 state["favorites"].append(uid)
             
-            save_state()
+            state.save_state()
             
             # Обновляем превью
             preview_list = state.get("preview_mode", {}).get("list", [])
@@ -980,7 +536,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 before_count = len(state["pending"])
                 removed = clean_old_posts(state)
                 after_count = len(state["pending"])
-                save_state()
+                state.save_state()
                 
                 await query.edit_message_text(
                     f"🗑 <b>Очистка завершена:</b>\n\n"
@@ -996,14 +552,14 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 state["pending"].clear()
                 state["preview_mode"].clear()
                 state["generated_images"].clear()
-                save_state()
+                state.save_state()
                 
                 await query.edit_message_text(f"🗑 Очищено {count} постов из очереди")
                 return
             elif data == "clean_sent":
                 count = len(state["sent_links"])
                 state["sent_links"].clear()
-                save_state()
+                state.save_state()
                 
                 await query.edit_message_text(f"🗑 Очищен список обработанных: {count} записей")
                 return
@@ -1023,9 +579,9 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if data.startswith("schedule:"):
             uid = data.split(":")[1]
             state["waiting_for_schedule"] = uid
-            save_state()
+            state.save_state()
             
-            user_tz = get_user_timezone()
+            user_tz = state.get_user_timezone()
             await query.edit_message_text(
                 f"⏰ <b>Планирование публикации</b>\n\n"
                 f"Ваша временная зона: {state.get('timezone', config.DEFAULT_TIMEZONE)}\n"
@@ -1045,13 +601,13 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if data.startswith("edit_schedule:"):
             post_id = data.split(":")[1]
             state["editing_schedule"] = post_id
-            save_state()
+            state.save_state()
             
             schedule_info = state["scheduled_posts"].get(post_id)
             if schedule_info:
                 scheduled_time = datetime.fromisoformat(schedule_info["time"].replace('Z', '+00:00'))
-                local_time = localize_datetime(scheduled_time)
-                user_tz = get_user_timezone()
+                local_time = state.localize_datetime(scheduled_time)
+                user_tz = state.get_user_timezone()
                 
                 await query.edit_message_text(
                     f"📝 <b>Изменение времени публикации</b>\n\n"
@@ -1071,7 +627,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             post_id = data.split(":")[1]
             if post_id in state.get("scheduled_posts", {}):
                 state["scheduled_posts"].pop(post_id)
-                save_state()
+                state.save_state()
                 await query.edit_message_text("✅ Пост удален из расписания")
             return
         
@@ -1079,7 +635,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if data.startswith("custom_prompt:"):
             uid = data.split(":")[1]
             state["waiting_for_prompt"] = uid
-            save_state()
+            state.save_state()
             
             await query.edit_message_text(
                 "✏️ <b>Создание кастомной обложки</b>\n\n"
@@ -1122,7 +678,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "current": 0,
                 "filter": None
             }
-            save_state()
+            state.save_state()
             
             await query.edit_message_text("✅ Фильтры сброшены")
             
@@ -1202,7 +758,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     
                     # Обновляем запись
                     state["pending"][uid] = record
-                    save_state()
+                    state.save_state()
                     
                     await query.message.edit_text("✅ Обложка сгенерирована!")
                     
@@ -1219,7 +775,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             record = state["pending"].get(uid)
             if record:
                 state["generated_images"].pop(uid, None)
-                save_state()
+                state.save_state()
                 
                 await query.message.edit_text("✅ Возвращены оригинальные изображения")
                 await send_for_moderation(context.bot, record)
@@ -1266,7 +822,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         )
                     await query.edit_message_text("✅ Мысли опубликованы!")
                     state.pop("current_thought", None)
-                    save_state()
+                    state.save_state()
                 except Exception as e:
                     await query.edit_message_text(f"❌ Ошибка публикации: {e}")
             return
@@ -1284,11 +840,11 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     is_thought=True,
                     image_description=thought_data.get("image_description", "")
                 )
-                hashtags = get_hashtags(thought_data["topic"], "sneakers")
+                hashtags = utils.get_hashtags(thought_data["topic"], "sneakers")
                 final_text = f"{new_thought}\n\n{hashtags}"
                 
                 state["current_thought"]["text"] = final_text
-                save_state()
+                state.save_state()
                 
                 keyboard = InlineKeyboardMarkup([
                     [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
@@ -1318,7 +874,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if image_url:
                     thought_data["image_url"] = image_url
                     state["current_thought"] = thought_data
-                    save_state()
+                    state.save_state()
                     
                     keyboard = InlineKeyboardMarkup([
                         [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
@@ -1340,7 +896,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif data == "cancel_thought":
             await query.message.delete()
             state.pop("current_thought", None)
-            save_state()
+            state.save_state()
             return
         
         elif data == "noop":
@@ -1373,7 +929,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         state["sent_links"] = state["sent_links"][-500:]
                 state["pending"].pop(uid, None)
                 state["generated_images"].pop(uid, None)
-                save_state()
+                state.save_state()
             else:
                 await query.edit_message_text(f"🚨 Ошибка публикации: {record['title'][:50]}...")
         
@@ -1381,7 +937,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(f"❌ Пропущено: {record['title'][:50]}...")
             state["pending"].pop(uid, None)
             state["generated_images"].pop(uid, None)
-            save_state()
+            state.save_state()
         
         elif action == "regen":
             await query.edit_message_text(f"🔄 Регенерирую описание для: {record['title'][:50]}...")
@@ -1393,7 +949,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             new_description = await gen_caption(record["title"], context_text, record.get("category", "sneakers"))
             record["description"] = new_description
             state["pending"][uid] = record
-            save_state()
+            state.save_state()
             
             await send_for_moderation(context.bot, record, show_all=False)
             
@@ -1481,7 +1037,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
             if new_channel.startswith("@") or (new_channel.lstrip("-").isdigit() and len(new_channel) > 5):
                 state["channel"] = new_channel
                 state["waiting_for_channel"] = False
-                save_state()
+                state.save_state()
                 
                 await update.message.reply_text(
                     f"✅ Канал изменен на: <code>{new_channel}</code>\n\n"
@@ -1499,7 +1055,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         
         elif state.get("waiting_for_schedule"):
             # Ожидаем время для планирования
-            scheduled_time = parse_schedule_time(text)
+            scheduled_time = utils.parse_schedule_time(text)
             if scheduled_time:
                 post_id = state["waiting_for_schedule"]
                 record = state["pending"].get(post_id)
@@ -1511,9 +1067,9 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                     }
                     
                     state["waiting_for_schedule"] = None
-                    save_state()
+                    state.save_state()
                     
-                    local_time = localize_datetime(scheduled_time)
+                    local_time = state.localize_datetime(scheduled_time)
                     await update.message.reply_text(
                         f"✅ Пост запланирован на {local_time.strftime('%d.%m.%Y %H:%M')} ({state.get('timezone', config.DEFAULT_TIMEZONE)})\n"
                         f"📝 {record['title'][:50]}..."
@@ -1532,16 +1088,16 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         
         elif state.get("editing_schedule"):
             # Редактируем время планирования
-            scheduled_time = parse_schedule_time(text)
+            scheduled_time = utils.parse_schedule_time(text)
             if scheduled_time:
                 post_id = state["editing_schedule"]
                 
                 if post_id in state.get("scheduled_posts", {}):
                     state["scheduled_posts"][post_id]["time"] = scheduled_time.isoformat()
                     state["editing_schedule"] = None
-                    save_state()
+                    state.save_state()
                     
-                    local_time = localize_datetime(scheduled_time)
+                    local_time = state.localize_datetime(scheduled_time)
                     await update.message.reply_text(
                         f"✅ Время изменено на {local_time.strftime('%d.%m.%Y %H:%M')} ({state.get('timezone', config.DEFAULT_TIMEZONE)})"
                     )
@@ -1568,7 +1124,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                     
                     state["generated_images"][uid].append(image_url)
                     state["waiting_for_prompt"] = None
-                    save_state()
+                    state.save_state()
                     
                     await update.message.reply_text("✅ Изображение сгенерировано!")
                     await send_for_moderation(context.bot, record)
@@ -1584,7 +1140,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                 if 10 <= minutes <= 1440:  # От 10 минут до 24 часов
                     state["publish_interval"] = minutes * 60
                     state["auto_interval_custom"] = False
-                    save_state()
+                    state.save_state()
                     await update.message.reply_text(f"✅ Интервал установлен: {minutes} минут")
                 else:
                     await update.message.reply_text("❌ Интервал должен быть от 10 до 1440 минут")
@@ -1626,7 +1182,7 @@ async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         state["waiting_for_channel"] = False
         cancelled.append("изменение канала")
     
-    save_state()
+    state.save_state()
     
     if cancelled:
         await update.message.reply_text(f"❌ Отменено: {', '.join(cancelled)}")
@@ -1882,7 +1438,7 @@ async def start_preview_mode(query, context):
             "list": preview_list,
             "current": 0
         }
-        save_state()
+        state.save_state()
         
         # Показываем первый пост без удаления сообщения
         first_record = state["pending"].get(preview_list[0])
@@ -1918,7 +1474,7 @@ async def show_status_info(query):
                 key=lambda x: x[1]["time"]
             )
             next_time = datetime.fromisoformat(next_post[1]["time"].replace('Z', '+00:00'))
-            local_time = localize_datetime(next_time)
+            local_time = state.localize_datetime(next_time)
             next_scheduled = f"⏰ Следующий пост: {local_time.strftime('%d.%m %H:%M')} ({state.get('timezone', config.DEFAULT_TIMEZONE)})"
         
         # Последние 3 поста
@@ -1943,7 +1499,7 @@ async def show_status_info(query):
             status_text += "\n🆕 <b>Последние посты:</b>\n"
             for post in recent_posts:
                 emoji = "👟" if post.get("category") == "sneakers" else "👔"
-                date = format_date_for_display(post.get("timestamp", ""))
+                date = utils.format_date_for_display(post.get("timestamp", ""))
                 status_text += f"{emoji} {date} - {post['title'][:40]}...\n"
         
         keyboard = InlineKeyboardMarkup([
@@ -1975,7 +1531,7 @@ async def show_scheduled_posts(query):
             
             for post_id, info in sorted(scheduled.items(), key=lambda x: x[1]["time"]):
                 scheduled_time = datetime.fromisoformat(info["time"].replace('Z', '+00:00'))
-                local_time = localize_datetime(scheduled_time)
+                local_time = state.localize_datetime(scheduled_time)
                 record = info["record"]
                 
                 text += (
@@ -2151,7 +1707,7 @@ async def filter_posts_by_tag(query, context, tag_type: str, tag_value: str):
         "current": 0,
         "filter": {tag_type: tag_value}
     }
-    save_state()
+    state.save_state()
     
     await query.edit_message_text(
         f"✅ Найдено {len(filtered_posts)} постов с тегом {tag_value}"
@@ -2256,7 +1812,7 @@ async def reset_state_command(update: Update, context: ContextTypes.DEFAULT_TYPE
             "channel": config.TELEGRAM_CHANNEL,
             "waiting_for_channel": False
         }
-        save_state()
+        state.save_state()
         
         await update.message.reply_text(
             "✅ Состояние бота сброшено!\n\n"
