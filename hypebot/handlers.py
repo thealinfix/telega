@@ -99,12 +99,296 @@ async def skip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await msg.edit_text(
                 f"💭 <b>Пост-размышление:</b>\n\n{final_text}",
                 parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
                 reply_markup=keyboard
             )
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработка фотографий"""
     try:
+        if state.get("changing_thought_photo"):
+            thought_data = state.get("current_thought")
+            if thought_data:
+                photo = update.message.photo[-1]
+                thought_data["image_url"] = photo.file_id
+                state["current_thought"] = thought_data
+                state["changing_thought_photo"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Фото обновлено!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{thought_data['text']}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+            return
+        
+        if state.get("changing_post_photo"):
+            post_id = state["changing_post_photo"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                photo = update.message.photo[-1]
+                if post_id not in state["generated_images"]:
+                    state["generated_images"][post_id] = []
+                
+                state["generated_images"][post_id].insert(0, photo.file_id)
+                state["changing_post_photo"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Фото добавлено к посту!")
+                await send_for_moderation(context.bot, record)
+            return
+        
+        if state.get("changing_thought_photo"):
+            thought_data = state.get("current_thought")
+            if thought_data:
+                photo = update.message.photo[-1]
+                thought_data["image_url"] = photo.file_id
+                state["current_thought"] = thought_data
+                state["changing_thought_photo"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Фото обновлено!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{thought_data['text']}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+            return
+        
+        if state.get("changing_post_photo"):
+            post_id = state["changing_post_photo"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                photo = update.message.photo[-1]
+                if post_id not in state["generated_images"]:
+                    state["generated_images"][post_id] = []
+                
+                state["generated_images"][post_id].insert(0, photo.file_id)
+                state["changing_post_photo"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Фото добавлено к посту!")
+                await send_for_moderation(context.bot, record)
+            return
+        
         if not state.get("waiting_for_image"):
             return
         
@@ -167,6 +451,144 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"💭 <b>Пост-размышление:</b>\n\n{final_text}\n\n"
                 f"📸 Изображение прикреплено",
                 parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
                 reply_markup=keyboard
             )
         
@@ -262,6 +684,144 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     f"Текущий канал: <code>{state.get('channel', config.TELEGRAM_CHANNEL)}</code>\n\n"
                     "Или /cancel для отмены",
                     parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
                 )
                 return
             elif data == "settings_timezone":
@@ -282,6 +842,144 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"✅ Временная зона изменена на {timezone_name}\n\n"
                 f"Текущее время: {datetime.now(pytz.timezone(timezone_name)).strftime('%H:%M')}",
                 parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
             )
             return
         
@@ -351,6 +1049,144 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     f"Осталось: {after_count}\n\n"
                     f"Удаляются посты старше {config.MAX_POST_AGE_DAYS} дней",
                     parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
                 )
                 return
             elif data == "clean_pending":
@@ -400,6 +1236,144 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"• <code>+1d</code> - через 1 день\n\n"
                 f"Или /cancel для отмены",
                 parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
             )
             return
         
@@ -425,6 +1399,144 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     f"• <code>+2h</code> - через 2 часа\n\n"
                     f"Или /cancel для отмены",
                     parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
                 )
             return
         
@@ -449,6 +1561,144 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "Пример: <i>Futuristic Nike Air Max sneakers floating in space with neon lights</i>\n\n"
                 "Или /cancel для отмены",
                 parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
             )
             return
         
@@ -606,32 +1856,6 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     )
             return
         
-        elif data == "publish_thought":
-            # Публикация мысли
-            thought_data = state.get("current_thought")
-            if thought_data:
-                try:
-                    channel = state.get("channel", config.TELEGRAM_CHANNEL)
-                    # Проверяем есть ли изображение
-                    if thought_data.get("image_url"):
-                        await context.bot.send_photo(
-                            channel,
-                            thought_data["image_url"],
-                            caption=thought_data["text"],
-                            parse_mode=ParseMode.HTML
-                        )
-                    else:
-                        await context.bot.send_message(
-                            channel,
-                            thought_data["text"],
-                            parse_mode=ParseMode.HTML
-                        )
-                    await query.edit_message_text("✅ Мысли опубликованы!")
-                    state.pop("current_thought", None)
-                    save_state()
-                except Exception as e:
-                    await query.edit_message_text(f"❌ Ошибка публикации: {e}")
-            return
         
         elif data == "regen_thought":
             # Перегенерация мысли
@@ -662,47 +1886,389 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await query.edit_message_text(
                     f"💭 <b>Пост-размышление:</b>\n\n{final_text}",
                     parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
                     reply_markup=keyboard
                 )
             return
         
-        elif data == "gen_thought_cover":
-            # Генерация обложки для мысли
-            thought_data = state.get("current_thought")
-            if thought_data:
-                await query.edit_message_text("🎨 Генерирую обложку для мысли...")
-                
-                style_config = config.IMAGE_STYLES["thoughts"]
-                prompt = style_config["prompt_template"].format(topic=thought_data["topic"])
-                
-                image_url = await generate_image(prompt, style_config["style"])
-                
-                if image_url:
-                    thought_data["image_url"] = image_url
-                    state["current_thought"] = thought_data
-                    save_state()
-                    
-                    keyboard = InlineKeyboardMarkup([
-                        [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
-                        [InlineKeyboardButton("🔄 Перегенерировать текст", callback_data="regen_thought")],
-                        [InlineKeyboardButton("🎨 Новая обложка", callback_data="gen_thought_cover")],
-                        [InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought")]
-                    ])
-                    
-                    await query.edit_message_text(
-                        f"💭 <b>Пост-размышление:</b>\n\n{thought_data['text']}\n\n"
-                        f"🎨 Обложка сгенерирована!",
-                        parse_mode=ParseMode.HTML,
-                        reply_markup=keyboard
-                    )
-                else:
-                    await query.edit_message_text("❌ Ошибка при генерации обложки")
-            return
         
         elif data == "cancel_thought":
             await query.message.delete()
             state.pop("current_thought", None)
             save_state()
+            return
+        
+        elif data == "edit_thought_text":
+            await edit_thought_text(update, context)
+            return
+        
+        elif data == "change_thought_photo":
+            await change_thought_photo(update, context)
+            return
+        
+        elif data.startswith("edit_post_text:"):
+            post_id = data.split(":")[1]
+            await edit_post_text_handler(query, context, post_id)
+            return
+        
+        elif data.startswith("change_post_photo:"):
+            post_id = data.split(":")[1]
+            state["changing_post_photo"] = post_id
+            save_state()
+            
+            await query.edit_message_text(
+                "📷 <b>Замена изображения поста</b>\n\n"
+                "Отправьте новое изображение.\n\n"
+                "Отправьте /cancel для отмены",
+                parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+            )
+            return
+        
+        elif data == "edit_thought_text":
+            await edit_thought_text(update, context)
+            return
+        
+        elif data == "change_thought_photo":
+            await change_thought_photo(update, context)
+            return
+        
+        elif data.startswith("edit_post_text:"):
+            post_id = data.split(":")[1]
+            await edit_post_text_handler(query, context, post_id)
+            return
+        
+        elif data.startswith("change_post_photo:"):
+            post_id = data.split(":")[1]
+            state["changing_post_photo"] = post_id
+            save_state()
+            
+            await query.edit_message_text(
+                "📷 <b>Замена изображения поста</b>\n\n"
+                "Отправьте новое изображение.\n\n"
+                "Отправьте /cancel для отмены",
+                parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+            )
             return
         
         elif data == "noop":
@@ -773,10 +2339,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         is_admin = not config.ADMIN_CHAT_ID or update.message.from_user.id == config.ADMIN_CHAT_ID
         
         # Базовые кнопки для всех пользователей
-        keyboard_buttons = [
-            [InlineKeyboardButton("📊 Статус бота", callback_data="cmd_status")],
             [InlineKeyboardButton("ℹ️ Помощь", callback_data="cmd_help")]
-        ]
         
         if is_admin:
             # Кнопки для администратора
@@ -819,6 +2382,144 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             welcome_text,
             parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
             reply_markup=keyboard
         )
     except Exception as e:
@@ -836,6 +2537,38 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         
         # Проверяем разные состояния ожидания
         if state.get("waiting_for_channel"):
+    
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
+    
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
             # Ожидаем новый канал
             new_channel = text.strip()
             
@@ -849,6 +2582,144 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                     f"✅ Канал изменен на: <code>{new_channel}</code>\n\n"
                     f"Все новые публикации будут отправляться в этот канал.",
                     parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
                 )
             else:
                 await update.message.reply_text(
@@ -857,6 +2728,144 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                     "• <code>@channelname</code> для публичного канала\n"
                     "• <code>-1001234567890</code> для приватного канала",
                     parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
                 )
         
         elif state.get("waiting_for_schedule"):
@@ -890,6 +2899,144 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                     "• <code>25.12 15:00</code>\n"
                     "• <code>+2h</code>",
                     parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
                 )
         
         elif state.get("editing_schedule"):
@@ -985,6 +3132,38 @@ async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cancelled.append("установка интервала")
     
     if state.get("waiting_for_channel"):
+    
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
+    
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
         state["waiting_for_channel"] = False
         cancelled.append("изменение канала")
     
@@ -1085,8 +3264,6 @@ async def show_main_menu(query):
     """Показать главное меню"""
     is_admin = not config.ADMIN_CHAT_ID or query.from_user.id == config.ADMIN_CHAT_ID
     
-    keyboard_buttons = [
-        [InlineKeyboardButton("📊 Статус бота", callback_data="cmd_status")],
         [InlineKeyboardButton("ℹ️ Помощь", callback_data="cmd_help")]
     ]
     
@@ -1130,6 +3307,144 @@ async def show_main_menu(query):
     await query.edit_message_text(
         welcome_text,
         parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
         reply_markup=keyboard
     )
 
@@ -1165,6 +3480,144 @@ async def show_help_info(query):
     await query.edit_message_text(
         help_text,
         parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
         reply_markup=keyboard
     )
 
@@ -1189,6 +3642,144 @@ async def show_settings_menu(query):
     await query.edit_message_text(
         settings_text,
         parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
         reply_markup=keyboard
     )
 
@@ -1207,16 +3798,150 @@ async def show_timezone_menu(query):
         ("🇬🇧 Лондон", "Europe/London"),
     ]
     
-    keyboard_buttons = []
-    for name, tz in timezones:
-        callback_data = f"tz_{tz.replace('/', '_')}"
-        keyboard_buttons.append([InlineKeyboardButton(name, callback_data=callback_data)])
     
     keyboard_buttons.append([InlineKeyboardButton("◀️ Назад", callback_data="cmd_settings")])
     
     await query.edit_message_text(
         "🕐 <b>Выберите временную зону:</b>",
         parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
         reply_markup=InlineKeyboardMarkup(keyboard_buttons)
     )
 
@@ -1267,6 +3992,144 @@ async def show_stats_info(query):
         await query.edit_message_text(
             stats_text,
             parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
             reply_markup=keyboard
         )
     except Exception as e:
@@ -1288,6 +4151,144 @@ async def show_tools_menu(query):
     await query.edit_message_text(
         tools_text,
         parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
         reply_markup=keyboard
     )
 
@@ -1308,6 +4309,144 @@ async def show_clean_menu(query):
     await query.edit_message_text(
         clean_text,
         parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
         reply_markup=keyboard
     )
 
@@ -1400,6 +4539,144 @@ async def show_status_info(query):
         await query.edit_message_text(
             status_text,
             parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
             reply_markup=keyboard
         )
     except Exception as e:
@@ -1418,9 +4695,6 @@ async def show_scheduled_posts(query):
             ])
         else:
             text = "📅 <b>Запланированные посты:</b>\n\n"
-            keyboard_buttons = []
-            
-            for post_id, info in sorted(scheduled.items(), key=lambda x: x[1]["time"]):
                 scheduled_time = datetime.fromisoformat(info["time"].replace('Z', '+00:00'))
                 local_time = localize_datetime(scheduled_time)
                 record = info["record"]
@@ -1443,6 +4717,144 @@ async def show_scheduled_posts(query):
         await query.edit_message_text(
             text,
             parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
             reply_markup=keyboard
         )
         
@@ -1464,11 +4876,6 @@ async def show_auto_publish_menu(query):
         f"Бот будет автоматически публиковать посты из избранного с заданным интервалом"
     )
     
-    keyboard_buttons = [
-        [InlineKeyboardButton(
-            "🔴 Выключить" if is_enabled else "🟢 Включить",
-            callback_data="auto_toggle"
-        )],
         [
             InlineKeyboardButton("30 мин", callback_data="auto_interval:1800"),
             InlineKeyboardButton("1 час", callback_data="auto_interval:3600"),
@@ -1482,6 +4889,144 @@ async def show_auto_publish_menu(query):
     await query.edit_message_text(
         text,
         parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
         reply_markup=keyboard
     )
 
@@ -1504,6 +5049,144 @@ async def show_thoughts_prompt(query):
     await query.edit_message_text(
         thoughts_text,
         parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
         reply_markup=keyboard
     )
 
@@ -1520,11 +5203,6 @@ async def show_filter_menu(query):
         all_models.update(tags.get("models", []))
         all_types.update(tags.get("types", []))
     
-    keyboard_buttons = []
-    
-    # Кнопки брендов
-    if all_brands:
-        brand_buttons = []
         for brand in sorted(all_brands)[:3]:  # Показываем первые 3
             brand_buttons.append(
                 InlineKeyboardButton(
@@ -1567,6 +5245,144 @@ async def show_filter_menu(query):
         "🏷 <b>Фильтр по тегам</b>\n\n"
         "Выберите тег для фильтрации:",
         parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
         reply_markup=InlineKeyboardMarkup(keyboard_buttons)
     )
 
@@ -1667,6 +5483,144 @@ async def test_sources_inline(query, context):
             await query.edit_message_text(
                 final_text,
                 parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
                 reply_markup=keyboard
             )
         
@@ -1735,6 +5689,144 @@ async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Отправьте новый текст для поста-размышления.\n\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1752,6 +5844,144 @@ async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYP
         "Поддерживаются форматы: JPG, PNG\n\n"
         "Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1773,6 +6003,144 @@ async def edit_post_text_handler(query, context, post_id):
         f"Отправьте новый текст для поста.\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1795,6 +6163,144 @@ async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Отправьте новый текст для поста-размышления.\n\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1812,6 +6318,144 @@ async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYP
         "Поддерживаются форматы: JPG, PNG\n\n"
         "Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1833,6 +6477,144 @@ async def edit_post_text_handler(query, context, post_id):
         f"Отправьте новый текст для поста.\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1855,6 +6637,144 @@ async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Отправьте новый текст для поста-размышления.\n\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1872,6 +6792,144 @@ async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYP
         "Поддерживаются форматы: JPG, PNG\n\n"
         "Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1893,6 +6951,144 @@ async def edit_post_text_handler(query, context, post_id):
         f"Отправьте новый текст для поста.\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1915,6 +7111,144 @@ async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Отправьте новый текст для поста-размышления.\n\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1932,6 +7266,144 @@ async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYP
         "Поддерживаются форматы: JPG, PNG\n\n"
         "Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1953,6 +7425,144 @@ async def edit_post_text_handler(query, context, post_id):
         f"Отправьте новый текст для поста.\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1975,6 +7585,144 @@ async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Отправьте новый текст для поста-размышления.\n\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -1992,6 +7740,144 @@ async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYP
         "Поддерживаются форматы: JPG, PNG\n\n"
         "Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -2013,6 +7899,144 @@ async def edit_post_text_handler(query, context, post_id):
         f"Отправьте новый текст для поста.\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -2035,6 +8059,144 @@ async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Отправьте новый текст для поста-размышления.\n\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -2052,6 +8214,144 @@ async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYP
         "Поддерживаются форматы: JPG, PNG\n\n"
         "Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
@@ -2073,10 +8373,820 @@ async def edit_post_text_handler(query, context, post_id):
         f"Отправьте новый текст для поста.\n"
         f"Отправьте /cancel для отмены",
         parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
     )
 
 
 # Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+    )
+
+
+# ===== НОВЫЕ ФУНКЦИИ ДЛЯ УЛУЧШЕННОГО ФУНКЦИОНАЛА =====
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+        
+        elif state.get("editing_thought"):
+            new_text = text.strip()
+            thought_data = state.get("current_thought")
+            
+            if thought_data:
+                thought_data["text"] = new_text
+                state["current_thought"] = thought_data
+                state["editing_thought"] = False
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [
+                        InlineKeyboardButton("✏️ Изменить текст", callback_data="edit_thought_text"),
+                        InlineKeyboardButton("🔄 Новый текст", callback_data="regen_thought")
+                    ],
+                    [
+                        InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover"),
+                        InlineKeyboardButton("📷 Заменить фото", callback_data="change_thought_photo")
+                    ],
+                    [
+                        InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought"),
+                        InlineKeyboardButton("🏠 Главное меню", callback_data="cmd_back_main")
+                    ]
+                ])
+                
+                await update.message.reply_text(
+                    f"✅ Текст обновлен!\n\n"
+                    f"💭 <b>Пост-размышление:</b>\n\n{new_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        
+        elif state.get("editing_post"):
+            post_id = state["editing_post"]
+            record = state["pending"].get(post_id)
+            
+            if record:
+                record["description"] = text.strip()
+                state["pending"][post_id] = record
+                state["editing_post"] = None
+                save_state()
+                
+                await update.message.reply_text("✅ Текст поста обновлен!")
+                await send_for_moderation(context.bot, record)
+    )
+
+
+# ===== НОВЫЕ ФУНКЦИИ ДЛЯ УЛУЧШЕННОГО ФУНКЦИОНАЛА =====
 
 async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработка редактирования текста мысли"""
