@@ -1,0 +1,24 @@
+{
+  "posts_commented": {
+    "2054": {
+      "comment_id": 3435,
+      "time": "2025-06-15T22:08:22.714051",
+      "text": "где можно будет взять?"
+    }
+  },
+  "all_comments": [
+    {
+      "post_id": "2054",
+      "comment_id": 3435,
+      "time": "2025-06-15T22:08:22.714051",
+      "text": "где можно будет взять?"
+    }
+  ],
+  "last_styles": [],
+  "daily_count": {
+    "2025-06-15": 1
+  },
+  "replies_count": {},
+  "last_reply_time": null,
+  "session_id": "2025-06-15T22:07:24.749194"
+}

@@ -1,0 +1,14 @@
+api_id: 2040
+api_hash: b18441a1ff607e10a989891a5462e627
+
+actions:
+  - reaction
+
+delays:
+  min: 5
+  max: 15
+
+proxy_file: proxies/proxies.txt
+sessions_dir: sessions/
+log_dir: logs/
+max_accounts_per_run: 10

@@ -1,0 +1,96 @@
+{
+  "bots": [
+    {
+      "phone": "+573181612574",
+      "api_id": 2040,
+      "api_hash": "b18441a1ff607e10a989891a5462e627",
+      "session_file": "sessions/573181612574.session",
+      "proxy": [
+        "socks5",
+        "217.29.62.212",
+        12049,
+        true,
+        "ZcqNj3",
+        "KNqLM6"
+      ],
+      "name": "Основной бот",
+      "role": "commenter",
+      "status": "inactive",
+      "device": "Desktop",
+      "app_version": "5.13.1 x64",
+      "lang_pack": "es"
+    },
+    {
+      "phone": "+573181612577",
+      "api_id": 2040,
+      "api_hash": "b18441a1ff607e10a989891a5462e627",
+      "session_file": "sessions/573181612577.session",
+      "proxy": [
+        "socks5",
+        "217.29.62.212",
+        12048,
+        true,
+        "7hTHZM",
+        "g8C8qK"
+      ],
+      "name": "Julia Contreras",
+      "role": "commenter",
+      "status": "inactive",
+      "device": "Desktop",
+      "app_version": "5.13.1 x64",
+      "lang_pack": "es",
+      "user_id": 8164518871,
+      "is_premium": false,
+      "twoFA": "7007"
+    },
+    {
+      "phone": "+1721433346",
+      "api_id": 2040,
+      "api_hash": "b18441a1ff607e10a989891a5462e627",
+      "session_file": "sessions/1721433346.telethon.session",
+      "proxy": [
+        "socks5",
+        "217.29.62.212",
+        12049,
+        true,
+        "ZcqNj3",
+        "KNqLM6"
+      ],
+      "name": "Bot USA",
+      "role": "commenter",
+      "status": "inactive",
+      "device": "QSJE0RAI3-ELITE",
+      "app_version": "5.10.7 x64",
+      "lang_pack": "en"
+    }
+  ],
+  "interaction_settings": {
+    "enable_bot_interactions": true,
+    "interaction_chance": 0.3,
+    "recognize_other_bots": true,
+    "bot_conversation_depth": 3
+  },
+  "channel_settings": {
+    "channel": "@chinapack",
+    "discussion_chat": "@chipack_chat"
+  },
+  "proxy_info": {
+    "proxy1": {
+      "host": "217.29.62.212:12049",
+      "expires": "2025-06-18 15:28",
+      "ipv6": "2a06:c006:3abb:2622:3574:1395:7f1e:40c9",
+      "assigned_to": [
+        "Bot1",
+        "Bot3"
+      ]
+    },
+    "proxy2": {
+      "host": "217.29.62.212:12048",
+      "expires": "2025-06-18 15:28",
+      "ipv6": "2a06:c006:4048:2e0c:5125:3292:bdb3:7c11",
+      "assigned_to": [
+        "Julia Contreras"
+      ]
+    }
+  }
+}
