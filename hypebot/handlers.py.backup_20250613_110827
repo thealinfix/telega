@@ -1,0 +1,1982 @@
+import logging
+import asyncio
+from datetime import datetime, timezone, timedelta
+import httpx
+import re
+import pytz
+from bs4 import BeautifulSoup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.constants import ParseMode
+from telegram.ext import ContextTypes
+
+from . import config, state, utils
+from .openai_utils import generate_image, analyze_image
+from .state import state, save_state, clean_old_posts, get_user_timezone, localize_datetime
+from .messaging import (
+    gen_caption,
+    build_media_group,
+    send_preview,
+    send_full_post,
+    send_for_moderation,
+    publish_release,
+)
+from .tasks import check_releases_job
+
+
+async def thoughts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда для создания поста-размышления"""
+    try:
+        user_id = update.message.from_user.id
+        if config.ADMIN_CHAT_ID and user_id != config.ADMIN_CHAT_ID:
+            await update.message.reply_text("❌ Эта команда доступна только администратору")
+            return
+        
+        # Проверяем аргументы
+        if not context.args:
+            await update.message.reply_text(
+                "💭 Использование команды:\n"
+                "/thoughts <краткое описание>\n\n"
+                "Пример:\n"
+                "/thoughts новые Jordan 4 в черном цвете\n\n"
+                "Также можно прикрепить изображение!"
+            )
+            return
+        
+        # Получаем тему
+        topic = " ".join(context.args)
+        
+        # Сохраняем в state для ожидания изображения
+        state["waiting_for_image"] = {
+            "type": "thoughts",
+            "topic": topic,
+            "message_id": update.message.message_id
+        }
+        save_state()
+        
+        # Показываем процесс
+        msg = await update.message.reply_text(
+            "💭 Отправьте изображение для анализа или нажмите /skip чтобы создать пост без изображения"
+        )
+        
+    except Exception as e:
+        logging.error(f"Ошибка в thoughts_command: {e}")
+        await update.message.reply_text("❌ Произошла ошибка при создании")
+
+async def skip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Пропустить ожидание изображения"""
+    if state.get("waiting_for_image"):
+        waiting_data = state["waiting_for_image"]
+        state["waiting_for_image"] = None
+        save_state()
+        
+        if waiting_data["type"] == "thoughts":
+            # Генерируем мысли без изображения
+            msg = await update.message.reply_text("💭 Генерирую мысли...")
+            
+            thought_text = await gen_caption(
+                waiting_data["topic"], 
+                "", 
+                "sneakers", 
+                is_thought=True
+            )
+            
+            hashtags = utils.get_hashtags(waiting_data["topic"], "sneakers")
+            final_text = f"{thought_text}\n\n{hashtags}"
+            
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                [InlineKeyboardButton("🔄 Перегенерировать", callback_data="regen_thought")],
+                [InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover")],
+                [InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought")]
+            ])
+            
+            state["current_thought"] = {
+                "text": final_text,
+                "topic": waiting_data["topic"]
+            }
+            save_state()
+            
+            await msg.edit_text(
+                f"💭 <b>Пост-размышление:</b>\n\n{final_text}",
+                parse_mode=ParseMode.HTML,
+                reply_markup=keyboard
+            )
+
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка фотографий"""
+    try:
+        if not state.get("waiting_for_image"):
+            return
+        
+        user_id = update.message.from_user.id
+        if config.ADMIN_CHAT_ID and user_id != config.ADMIN_CHAT_ID:
+            return
+        
+        waiting_data = state["waiting_for_image"]
+        state["waiting_for_image"] = None
+        save_state()
+        
+        # Показываем процесс
+        msg = await update.message.reply_text("🔍 Анализирую изображение...")
+        
+        # Получаем фото
+        photo = update.message.photo[-1]  # Берем самое большое
+        file = await context.bot.get_file(photo.file_id)
+        
+        # Скачиваем изображение
+        image_bytes = await file.download_as_bytearray()
+        
+        # Анализируем изображение
+        image_description = await analyze_image(bytes(image_bytes))
+        
+        if waiting_data["type"] == "thoughts":
+            # Генерируем мысли на основе изображения
+            await msg.edit_text("💭 Генерирую мысли на основе изображения...")
+            
+            thought_text = await gen_caption(
+                waiting_data["topic"], 
+                "", 
+                "sneakers", 
+                is_thought=True,
+                image_description=image_description
+            )
+            
+            hashtags = utils.get_hashtags(waiting_data["topic"], "sneakers")
+            final_text = f"{thought_text}\n\n{hashtags}"
+            
+            # Загружаем изображение в Telegram для использования
+            uploaded_photo = await update.message.photo[-1].get_file()
+            photo_url = uploaded_photo.file_path
+            
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                [InlineKeyboardButton("🔄 Перегенерировать", callback_data="regen_thought")],
+                [InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover")],
+                [InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought")]
+            ])
+            
+            state["current_thought"] = {
+                "text": final_text,
+                "topic": waiting_data["topic"],
+                "image_description": image_description,
+                "image_url": photo.file_id  # Сохраняем file_id для отправки
+            }
+            save_state()
+            
+            await msg.edit_text(
+                f"💭 <b>Пост-размышление:</b>\n\n{final_text}\n\n"
+                f"📸 Изображение прикреплено",
+                parse_mode=ParseMode.HTML,
+                reply_markup=keyboard
+            )
+        
+    except Exception as e:
+        logging.error(f"Ошибка при обработке фото: {e}")
+        await update.message.reply_text("❌ Произошла ошибка при обработке изображения")
+
+async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    try:
+        data = query.data
+        
+        # Обработка команд из меню
+        if data.startswith("cmd_"):
+            if data == "cmd_status":
+                await show_status_info(query)
+                return
+            elif data == "cmd_help":
+                await show_help_info(query)
+                return
+            elif data == "cmd_preview":
+                if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                    await query.edit_message_text("❌ Эта команда доступна только администратору")
+                    return
+                await start_preview_mode(query, context)
+                return
+            elif data == "cmd_check":
+                if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                    await query.edit_message_text("❌ Эта команда доступна только администратору")
+                    return
+                await query.edit_message_text("🔄 Запускаю проверку новых релизов...")
+                asyncio.create_task(check_releases_job(context))
+                return
+            elif data == "cmd_thoughts":
+                if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                    await query.edit_message_text("❌ Эта команда доступна только администратору")
+                    return
+                await show_thoughts_prompt(query)
+                return
+            elif data == "cmd_scheduled":
+                if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                    await query.edit_message_text("❌ Эта команда доступна только администратору")
+                    return
+                await show_scheduled_posts(query)
+                return
+            elif data == "cmd_stats":
+                await show_stats_info(query)
+                return
+            elif data == "cmd_clean_menu":
+                if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                    await query.edit_message_text("❌ Эта команда доступна только администратору")
+                    return
+                await show_clean_menu(query)
+                return
+            elif data == "cmd_tools_menu":
+                if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                    await query.edit_message_text("❌ Эта команда доступна только администратору")
+                    return
+                await show_tools_menu(query)
+                return
+            elif data == "cmd_back_main":
+                await show_main_menu(query)
+                return
+            elif data == "cmd_auto_menu":
+                if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                    await query.edit_message_text("❌ Эта команда доступна только администратору")
+                    return
+                await show_auto_publish_menu(query)
+                return
+            elif data == "cmd_settings":
+                if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                    await query.edit_message_text("❌ Эта команда доступна только администратору")
+                    return
+                await show_settings_menu(query)
+                return
+        
+        # Обработка настроек
+        if data.startswith("settings_"):
+            if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                await query.edit_message_text("❌ Недостаточно прав")
+                return
+                
+            if data == "settings_channel":
+                state["waiting_for_channel"] = True
+                save_state()
+                await query.edit_message_text(
+                    "📢 <b>Изменение канала публикации</b>\n\n"
+                    "Отправьте новый канал в формате:\n"
+                    "• <code>@channelname</code> - для публичного канала\n"
+                    "• <code>-1001234567890</code> - для приватного канала (ID чата)\n\n"
+                    f"Текущий канал: <code>{state.get('channel', config.TELEGRAM_CHANNEL)}</code>\n\n"
+                    "Или /cancel для отмены",
+                    parse_mode=ParseMode.HTML
+                )
+                return
+            elif data == "settings_timezone":
+                await show_timezone_menu(query)
+                return
+        
+        # Обработка временных зон
+        if data.startswith("tz_"):
+            if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                await query.edit_message_text("❌ Недостаточно прав")
+                return
+                
+            timezone_name = data.replace("tz_", "").replace("_", "/")
+            state["timezone"] = timezone_name
+            save_state()
+            
+            await query.edit_message_text(
+                f"✅ Временная зона изменена на {timezone_name}\n\n"
+                f"Текущее время: {datetime.now(pytz.timezone(timezone_name)).strftime('%H:%M')}",
+                parse_mode=ParseMode.HTML
+            )
+            return
+        
+        # Обработка авто-публикации
+        if data.startswith("auto_"):
+            if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                await query.edit_message_text("❌ Недостаточно прав")
+                return
+            
+            if data == "auto_toggle":
+                state["auto_publish"] = not state.get("auto_publish", False)
+                save_state()
+                await show_auto_publish_menu(query)
+                return
+            elif data.startswith("auto_interval:"):
+                interval = int(data.split(":")[1])
+                state["publish_interval"] = interval
+                save_state()
+                await show_auto_publish_menu(query)
+                return
+        
+        # Обработка избранного
+        if data.startswith("toggle_fav:"):
+            uid = data.split(":")[1]
+            if "favorites" not in state:
+                state["favorites"] = []
+            
+            if uid in state["favorites"]:
+                state["favorites"].remove(uid)
+            else:
+                state["favorites"].append(uid)
+            
+            save_state()
+            
+            # Обновляем превью
+            preview_list = state.get("preview_mode", {}).get("list", [])
+            if uid in preview_list:
+                idx = preview_list.index(uid)
+                record = state["pending"].get(uid)
+                if record:
+                    await send_preview(
+                        context.bot,
+                        record,
+                        query.message.chat.id,
+                        idx,
+                        len(preview_list),
+                        query.message.message_id
+                    )
+            return
+        
+        # Обработка меню очистки
+        if data.startswith("clean_"):
+            if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                await query.edit_message_text("❌ Недостаточно прав")
+                return
+                
+            if data == "clean_old":
+                before_count = len(state["pending"])
+                removed = clean_old_posts(state)
+                after_count = len(state["pending"])
+                save_state()
+                
+                await query.edit_message_text(
+                    f"🗑 <b>Очистка завершена:</b>\n\n"
+                    f"Было постов: {before_count}\n"
+                    f"Удалено старых: {removed}\n"
+                    f"Осталось: {after_count}\n\n"
+                    f"Удаляются посты старше {config.MAX_POST_AGE_DAYS} дней",
+                    parse_mode=ParseMode.HTML
+                )
+                return
+            elif data == "clean_pending":
+                count = len(state["pending"])
+                state["pending"].clear()
+                state["preview_mode"].clear()
+                state["generated_images"].clear()
+                save_state()
+                
+                await query.edit_message_text(f"🗑 Очищено {count} постов из очереди")
+                return
+            elif data == "clean_sent":
+                count = len(state["sent_links"])
+                state["sent_links"].clear()
+                save_state()
+                
+                await query.edit_message_text(f"🗑 Очищен список обработанных: {count} записей")
+                return
+        
+        # Обработка меню инструментов
+        if data.startswith("tool_"):
+            if config.ADMIN_CHAT_ID and query.from_user.id != config.ADMIN_CHAT_ID:
+                await query.edit_message_text("❌ Недостаточно прав")
+                return
+                
+            if data == "tool_test_sources":
+                await query.edit_message_text("🔍 Тестирую источники...")
+                await test_sources_inline(query, context)
+                return
+        
+        # Обработка планирования
+        if data.startswith("schedule:"):
+            uid = data.split(":")[1]
+            state["waiting_for_schedule"] = uid
+            save_state()
+            
+            user_tz = get_user_timezone()
+            await query.edit_message_text(
+                f"⏰ <b>Планирование публикации</b>\n\n"
+                f"Ваша временная зона: {state.get('timezone', config.DEFAULT_TIMEZONE)}\n"
+                f"Текущее время: {datetime.now(user_tz).strftime('%H:%M')}\n\n"
+                f"Отправьте время в одном из форматов:\n"
+                f"• <code>18:30</code> - сегодня в 18:30\n"
+                f"• <code>25.12 15:00</code> - конкретная дата\n"
+                f"• <code>+2h</code> - через 2 часа\n"
+                f"• <code>+30m</code> - через 30 минут\n"
+                f"• <code>+1d</code> - через 1 день\n\n"
+                f"Или /cancel для отмены",
+                parse_mode=ParseMode.HTML
+            )
+            return
+        
+        # Обработка редактирования расписания
+        if data.startswith("edit_schedule:"):
+            post_id = data.split(":")[1]
+            state["editing_schedule"] = post_id
+            save_state()
+            
+            schedule_info = state["scheduled_posts"].get(post_id)
+            if schedule_info:
+                scheduled_time = datetime.fromisoformat(schedule_info["time"].replace('Z', '+00:00'))
+                local_time = localize_datetime(scheduled_time)
+                user_tz = get_user_timezone()
+                
+                await query.edit_message_text(
+                    f"📝 <b>Изменение времени публикации</b>\n\n"
+                    f"Текущее время: {local_time.strftime('%d.%m.%Y %H:%M')} ({state.get('timezone', config.DEFAULT_TIMEZONE)})\n"
+                    f"Сейчас: {datetime.now(user_tz).strftime('%H:%M')}\n\n"
+                    f"Отправьте новое время в формате:\n"
+                    f"• <code>18:30</code> - сегодня в 18:30\n"
+                    f"• <code>25.12 15:00</code> - конкретная дата\n"
+                    f"• <code>+2h</code> - через 2 часа\n\n"
+                    f"Или /cancel для отмены",
+                    parse_mode=ParseMode.HTML
+                )
+            return
+        
+        # Обработка удаления из расписания
+        if data.startswith("delete_schedule:"):
+            post_id = data.split(":")[1]
+            if post_id in state.get("scheduled_posts", {}):
+                state["scheduled_posts"].pop(post_id)
+                save_state()
+                await query.edit_message_text("✅ Пост удален из расписания")
+            return
+        
+        # Обработка кастомного промпта
+        if data.startswith("custom_prompt:"):
+            uid = data.split(":")[1]
+            state["waiting_for_prompt"] = uid
+            save_state()
+            
+            await query.edit_message_text(
+                "✏️ <b>Создание кастомной обложки</b>\n\n"
+                "Отправьте описание для генерации изображения.\n"
+                "Пример: <i>Futuristic Nike Air Max sneakers floating in space with neon lights</i>\n\n"
+                "Или /cancel для отмены",
+                parse_mode=ParseMode.HTML
+            )
+            return
+        
+        # Обработка фильтров
+        if data == "filter_tags":
+            await show_filter_menu(query)
+            return
+        
+        elif data.startswith("filter_brand:"):
+            brand = data.split(":")[1]
+            await filter_posts_by_tag(query, context, "brand", brand)
+            return
+        
+        elif data.startswith("filter_model:"):
+            model = data.split(":")[1]
+            await filter_posts_by_tag(query, context, "model", model)
+            return
+        
+        elif data.startswith("filter_type:"):
+            release_type = data.split(":")[1]
+            await filter_posts_by_tag(query, context, "type", release_type)
+            return
+        
+        elif data == "filter_reset":
+            # Сбрасываем фильтры
+            preview_list = sorted(
+                state["pending"].keys(),
+                key=lambda x: state["pending"][x].get("timestamp", ""),
+                reverse=True
+            )
+            state["preview_mode"] = {
+                "list": preview_list,
+                "current": 0,
+                "filter": None
+            }
+            save_state()
+            
+            await query.edit_message_text("✅ Фильтры сброшены")
+            
+            if preview_list:
+                first_record = state["pending"].get(preview_list[0])
+                if first_record:
+                    await send_preview(
+                        context.bot,
+                        first_record,
+                        query.message.chat.id,
+                        0,
+                        len(preview_list)
+                    )
+            return
+        
+        # Обработка превью
+        if data.startswith("preview_"):
+            if data == "preview_close":
+                await query.message.delete()
+                return
+            
+            elif data.startswith("preview_next:") or data.startswith("preview_prev:"):
+                current_idx = int(data.split(":")[1])
+                preview_list = state.get("preview_mode", {}).get("list", [])
+                
+                if data.startswith("preview_next:"):
+                    new_idx = min(current_idx + 1, len(preview_list) - 1)
+                else:
+                    new_idx = max(current_idx - 1, 0)
+                
+                if 0 <= new_idx < len(preview_list):
+                    uid = preview_list[new_idx]
+                    record = state["pending"].get(uid)
+                    if record:
+                        await send_preview(
+                            context.bot, 
+                            record, 
+                            query.message.chat.id,
+                            new_idx,
+                            len(preview_list),
+                            query.message.message_id
+                        )
+                return
+            
+            elif data.startswith("preview_full:"):
+                uid = data.split(":")[1]
+                record = state["pending"].get(uid)
+                if record:
+                    # Удаляем превью и показываем полный пост
+                    await query.message.delete()
+                    await send_full_post(context.bot, record, query.message.chat.id)
+                return
+        
+        elif data.startswith("gen_cover"):
+            # Генерация обложки
+            uid = data.split(":")[-1]
+            record = state["pending"].get(uid)
+            if record:
+                await query.message.edit_text("🎨 Генерирую обложку...")
+                
+                # Определяем стиль
+                category = record.get("category", "sneakers")
+                style_config = config.IMAGE_STYLES.get(category, config.IMAGE_STYLES["sneakers"])
+                
+                # Генерируем промпт
+                prompt = style_config["prompt_template"].format(title=record["title"])
+                
+                # Генерируем изображение
+                image_url = await generate_image(prompt, style_config["style"])
+                
+                if image_url:
+                    # Сохраняем сгенерированное изображение
+                    if uid not in state["generated_images"]:
+                        state["generated_images"][uid] = []
+                    
+                    state["generated_images"][uid].append(image_url)
+                    
+                    # Обновляем запись
+                    state["pending"][uid] = record
+                    save_state()
+                    
+                    await query.message.edit_text("✅ Обложка сгенерирована!")
+                    
+                    # Если это полный просмотр, обновляем пост
+                    if "full" in data:
+                        await send_for_moderation(context.bot, record)
+                else:
+                    await query.message.edit_text("❌ Ошибка при генерации обложки")
+            return
+        
+        elif data.startswith("revert_img:"):
+            # Возврат к оригинальным изображениям
+            uid = data.split(":")[1]
+            record = state["pending"].get(uid)
+            if record:
+                state["generated_images"].pop(uid, None)
+                save_state()
+                
+                await query.message.edit_text("✅ Возвращены оригинальные изображения")
+                await send_for_moderation(context.bot, record)
+            return
+        
+        elif data.startswith("back_preview:"):
+            # Возврат к превью
+            uid = data.split(":")[1]
+            await query.message.delete()
+            
+            preview_list = state.get("preview_mode", {}).get("list", [])
+            if uid in preview_list:
+                idx = preview_list.index(uid)
+                record = state["pending"].get(uid)
+                if record:
+                    await send_preview(
+                        context.bot,
+                        record,
+                        query.message.chat.id,
+                        idx,
+                        len(preview_list)
+                    )
+            return
+        
+        elif data == "publish_thought":
+            # Публикация мысли
+            thought_data = state.get("current_thought")
+            if thought_data:
+                try:
+                    channel = state.get("channel", config.TELEGRAM_CHANNEL)
+                    # Проверяем есть ли изображение
+                    if thought_data.get("image_url"):
+                        await context.bot.send_photo(
+                            channel,
+                            thought_data["image_url"],
+                            caption=thought_data["text"],
+                            parse_mode=ParseMode.HTML
+                        )
+                    else:
+                        await context.bot.send_message(
+                            channel,
+                            thought_data["text"],
+                            parse_mode=ParseMode.HTML
+                        )
+                    await query.edit_message_text("✅ Мысли опубликованы!")
+                    state.pop("current_thought", None)
+                    save_state()
+                except Exception as e:
+                    await query.edit_message_text(f"❌ Ошибка публикации: {e}")
+            return
+        
+        elif data == "regen_thought":
+            # Перегенерация мысли
+            thought_data = state.get("current_thought")
+            if thought_data:
+                await query.edit_message_text("🔄 Генерирую новые мысли...")
+                
+                new_thought = await gen_caption(
+                    thought_data["topic"], 
+                    "", 
+                    "sneakers", 
+                    is_thought=True,
+                    image_description=thought_data.get("image_description", "")
+                )
+                hashtags = utils.get_hashtags(thought_data["topic"], "sneakers")
+                final_text = f"{new_thought}\n\n{hashtags}"
+                
+                state["current_thought"]["text"] = final_text
+                save_state()
+                
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                    [InlineKeyboardButton("🔄 Перегенерировать", callback_data="regen_thought")],
+                    [InlineKeyboardButton("🎨 Генерировать обложку", callback_data="gen_thought_cover")],
+                    [InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought")]
+                ])
+                
+                await query.edit_message_text(
+                    f"💭 <b>Пост-размышление:</b>\n\n{final_text}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+            return
+        
+        elif data == "gen_thought_cover":
+            # Генерация обложки для мысли
+            thought_data = state.get("current_thought")
+            if thought_data:
+                await query.edit_message_text("🎨 Генерирую обложку для мысли...")
+                
+                style_config = config.IMAGE_STYLES["thoughts"]
+                prompt = style_config["prompt_template"].format(topic=thought_data["topic"])
+                
+                image_url = await generate_image(prompt, style_config["style"])
+                
+                if image_url:
+                    thought_data["image_url"] = image_url
+                    state["current_thought"] = thought_data
+                    save_state()
+                    
+                    keyboard = InlineKeyboardMarkup([
+                        [InlineKeyboardButton("📤 Опубликовать", callback_data="publish_thought")],
+                        [InlineKeyboardButton("🔄 Перегенерировать текст", callback_data="regen_thought")],
+                        [InlineKeyboardButton("🎨 Новая обложка", callback_data="gen_thought_cover")],
+                        [InlineKeyboardButton("❌ Отмена", callback_data="cancel_thought")]
+                    ])
+                    
+                    await query.edit_message_text(
+                        f"💭 <b>Пост-размышление:</b>\n\n{thought_data['text']}\n\n"
+                        f"🎨 Обложка сгенерирована!",
+                        parse_mode=ParseMode.HTML,
+                        reply_markup=keyboard
+                    )
+                else:
+                    await query.edit_message_text("❌ Ошибка при генерации обложки")
+            return
+        
+        elif data == "cancel_thought":
+            await query.message.delete()
+            state.pop("current_thought", None)
+            save_state()
+            return
+        
+        elif data == "noop":
+            # Пустое действие
+            return
+        
+        # Обработка модерации
+        if ":" not in data:
+            await query.edit_message_text("❌ Ошибка: некорректный формат данных")
+            return
+        
+        action, uid = data.split(":", 1)
+        
+        if action not in ["approve", "reject", "regen"]:
+            await query.edit_message_text("❌ Ошибка: неизвестное действие")
+            return
+        
+        record = state["pending"].get(uid)
+        if not record:
+            await query.edit_message_text("❌ Этот пост уже был обработан")
+            return
+        
+        if action == "approve":
+            published = await publish_release(context.bot, record)
+            if published:
+                await query.edit_message_text(f"✅ Опубликовано: {record['title'][:50]}...")
+                if record["link"] not in state["sent_links"]:
+                    state["sent_links"].append(record["link"])
+                    if len(state["sent_links"]) > 1000:
+                        state["sent_links"] = state["sent_links"][-500:]
+                state["pending"].pop(uid, None)
+                state["generated_images"].pop(uid, None)
+                save_state()
+            else:
+                await query.edit_message_text(f"🚨 Ошибка публикации: {record['title'][:50]}...")
+        
+        elif action == "reject":
+            await query.edit_message_text(f"❌ Пропущено: {record['title'][:50]}...")
+            state["pending"].pop(uid, None)
+            state["generated_images"].pop(uid, None)
+            save_state()
+        
+        elif action == "regen":
+            await query.edit_message_text(f"🔄 Регенерирую описание для: {record['title'][:50]}...")
+            
+            context_text = record.get("context", "")
+            if not context_text and "link" in record:
+                context_text = f"Релиз от {record.get('title', '')}"
+            
+            new_description = await gen_caption(record["title"], context_text, record.get("category", "sneakers"))
+            record["description"] = new_description
+            state["pending"][uid] = record
+            save_state()
+            
+            await send_for_moderation(context.bot, record, show_all=False)
+            
+    except Exception as e:
+        logging.error(f"Ошибка при обработке callback: {e}")
+        try:
+            await query.edit_message_text("❌ Произошла ошибка при обработке")
+        except:
+            await query.answer("❌ Произошла ошибка")
+
+# Обработчики команд
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        logging.info(f"Команда /start от пользователя {update.message.from_user.id}")
+        is_admin = not config.ADMIN_CHAT_ID or update.message.from_user.id == config.ADMIN_CHAT_ID
+        
+        # Базовые кнопки для всех пользователей
+        keyboard_buttons = [
+            [InlineKeyboardButton("📊 Статус бота", callback_data="cmd_status")],
+            [InlineKeyboardButton("ℹ️ Помощь", callback_data="cmd_help")]
+        ]
+        
+        if is_admin:
+            # Кнопки для администратора
+            keyboard_buttons.extend([
+                [
+                    InlineKeyboardButton("👁 Превью постов", callback_data="cmd_preview"),
+                    InlineKeyboardButton("🔄 Проверить релизы", callback_data="cmd_check")
+                ],
+                [
+                    InlineKeyboardButton("💭 Создать мысли", callback_data="cmd_thoughts"),
+                    InlineKeyboardButton("⏰ Запланированные", callback_data="cmd_scheduled")
+                ],
+                [
+                    InlineKeyboardButton("📈 Статистика", callback_data="cmd_stats"),
+                    InlineKeyboardButton("🤖 Авто-публикация", callback_data="cmd_auto_menu")
+                ],
+                [
+                    InlineKeyboardButton("⚙️ Настройки", callback_data="cmd_settings"),
+                    InlineKeyboardButton("🧹 Очистка", callback_data="cmd_clean_menu")
+                ],
+                [
+                    InlineKeyboardButton("🔧 Инструменты", callback_data="cmd_tools_menu")
+                ]
+            ])
+        
+        keyboard = InlineKeyboardMarkup(keyboard_buttons)
+        
+        welcome_text = (
+            "👟 <b>HypeBot</b> - мониторинг релизов кроссовок и уличной моды\n\n"
+            "🔥 Актуальные релизы Nike, Adidas, Jordan и других брендов\n"
+            "🤖 Автоматическая генерация описаний и обложек\n"
+            "⏰ Планировщик публикаций\n"
+            "⭐️ Избранное и авто-публикация\n\n"
+            "Выберите нужную команду:"
+        )
+        
+        if is_admin:
+            welcome_text += f"\n\n🔐 <i>Вы вошли как администратор</i>"
+        
+        await update.message.reply_text(
+            welcome_text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=keyboard
+        )
+    except Exception as e:
+        logging.error(f"Ошибка в start_command: {e}")
+        await update.message.reply_text("❌ Произошла ошибка")
+
+async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка текстовых сообщений"""
+    try:
+        user_id = update.message.from_user.id
+        if config.ADMIN_CHAT_ID and user_id != config.ADMIN_CHAT_ID:
+            return
+        
+        text = update.message.text
+        
+        # Проверяем разные состояния ожидания
+        if state.get("waiting_for_channel"):
+            # Ожидаем новый канал
+            new_channel = text.strip()
+            
+            # Валидация канала
+            if new_channel.startswith("@") or (new_channel.lstrip("-").isdigit() and len(new_channel) > 5):
+                state["channel"] = new_channel
+                state["waiting_for_channel"] = False
+                save_state()
+                
+                await update.message.reply_text(
+                    f"✅ Канал изменен на: <code>{new_channel}</code>\n\n"
+                    f"Все новые публикации будут отправляться в этот канал.",
+                    parse_mode=ParseMode.HTML
+                )
+            else:
+                await update.message.reply_text(
+                    "❌ Неверный формат канала\n\n"
+                    "Используйте:\n"
+                    "• <code>@channelname</code> для публичного канала\n"
+                    "• <code>-1001234567890</code> для приватного канала",
+                    parse_mode=ParseMode.HTML
+                )
+        
+        elif state.get("waiting_for_schedule"):
+            # Ожидаем время для планирования
+            scheduled_time = utils.parse_schedule_time(text)
+            if scheduled_time:
+                post_id = state["waiting_for_schedule"]
+                record = state["pending"].get(post_id)
+                
+                if record:
+                    state["scheduled_posts"][post_id] = {
+                        "time": scheduled_time.isoformat(),
+                        "record": record
+                    }
+                    
+                    state["waiting_for_schedule"] = None
+                    save_state()
+                    
+                    local_time = localize_datetime(scheduled_time)
+                    await update.message.reply_text(
+                        f"✅ Пост запланирован на {local_time.strftime('%d.%m.%Y %H:%M')} ({state.get('timezone', config.DEFAULT_TIMEZONE)})\n"
+                        f"📝 {record['title'][:50]}..."
+                    )
+                else:
+                    await update.message.reply_text("❌ Пост не найден")
+            else:
+                await update.message.reply_text(
+                    "❌ Неверный формат времени\n\n"
+                    "Используйте:\n"
+                    "• <code>18:30</code>\n"
+                    "• <code>25.12 15:00</code>\n"
+                    "• <code>+2h</code>",
+                    parse_mode=ParseMode.HTML
+                )
+        
+        elif state.get("editing_schedule"):
+            # Редактируем время планирования
+            scheduled_time = utils.parse_schedule_time(text)
+            if scheduled_time:
+                post_id = state["editing_schedule"]
+                
+                if post_id in state.get("scheduled_posts", {}):
+                    state["scheduled_posts"][post_id]["time"] = scheduled_time.isoformat()
+                    state["editing_schedule"] = None
+                    save_state()
+                    
+                    local_time = localize_datetime(scheduled_time)
+                    await update.message.reply_text(
+                        f"✅ Время изменено на {local_time.strftime('%d.%m.%Y %H:%M')} ({state.get('timezone', config.DEFAULT_TIMEZONE)})"
+                    )
+                else:
+                    await update.message.reply_text("❌ Запланированный пост не найден")
+            else:
+                await update.message.reply_text("❌ Неверный формат времени")
+        
+        elif state.get("waiting_for_prompt"):
+            # Ожидаем кастомный промпт
+            uid = state["waiting_for_prompt"]
+            record = state["pending"].get(uid)
+            
+            if record:
+                await update.message.reply_text("🎨 Генерирую изображение с вашим описанием...")
+                
+                # Генерируем изображение
+                image_url = await generate_image(text, "creative")
+                
+                if image_url:
+                    # Сохраняем сгенерированное изображение
+                    if uid not in state["generated_images"]:
+                        state["generated_images"][uid] = []
+                    
+                    state["generated_images"][uid].append(image_url)
+                    state["waiting_for_prompt"] = None
+                    save_state()
+                    
+                    await update.message.reply_text("✅ Изображение сгенерировано!")
+                    await send_for_moderation(context.bot, record)
+                else:
+                    await update.message.reply_text("❌ Ошибка при генерации изображения")
+            else:
+                await update.message.reply_text("❌ Пост не найден")
+                
+        elif state.get("auto_interval_custom"):
+            # Ожидаем кастомный интервал
+            try:
+                minutes = int(text)
+                if 10 <= minutes <= 1440:  # От 10 минут до 24 часов
+                    state["publish_interval"] = minutes * 60
+                    state["auto_interval_custom"] = False
+                    save_state()
+                    await update.message.reply_text(f"✅ Интервал установлен: {minutes} минут")
+                else:
+                    await update.message.reply_text("❌ Интервал должен быть от 10 до 1440 минут")
+            except ValueError:
+                await update.message.reply_text("❌ Введите число минут")
+        
+    except Exception as e:
+        logging.error(f"Ошибка в handle_text_message: {e}")
+
+async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отмена текущей операции"""
+    user_id = update.message.from_user.id
+    if config.ADMIN_CHAT_ID and user_id != config.ADMIN_CHAT_ID:
+        return
+    
+    cancelled = []
+    
+    if state.get("waiting_for_schedule"):
+        state["waiting_for_schedule"] = None
+        cancelled.append("планирование поста")
+    
+    if state.get("editing_schedule"):
+        state["editing_schedule"] = None
+        cancelled.append("изменение расписания")
+    
+    if state.get("waiting_for_image"):
+        state["waiting_for_image"] = None
+        cancelled.append("ожидание изображения")
+    
+    if state.get("waiting_for_prompt"):
+        state["waiting_for_prompt"] = None
+        cancelled.append("ожидание промпта")
+    
+    if state.get("auto_interval_custom"):
+        state["auto_interval_custom"] = False
+        cancelled.append("установка интервала")
+    
+    if state.get("waiting_for_channel"):
+        state["waiting_for_channel"] = False
+        cancelled.append("изменение канала")
+    
+
+
+
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
+    
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
+    
+    if state.get("editing_thought"):
+        state["editing_thought"] = False
+        cancelled.append("редактирование текста мысли")
+    
+    if state.get("changing_thought_photo"):
+        state["changing_thought_photo"] = False
+        cancelled.append("замена фото мысли")
+    
+    if state.get("editing_post"):
+        state["editing_post"] = None
+        cancelled.append("редактирование текста поста")
+    
+    if state.get("changing_post_photo"):
+        state["changing_post_photo"] = None
+        cancelled.append("замена фото поста")
+    
+    save_state()
+    
+    if cancelled:
+        await update.message.reply_text(f"❌ Отменено: {', '.join(cancelled)}")
+    else:
+        await update.message.reply_text("❌ Нечего отменять")
+
+# Вспомогательные функции для интерактивного меню
+async def show_main_menu(query):
+    """Показать главное меню"""
+    is_admin = not config.ADMIN_CHAT_ID or query.from_user.id == config.ADMIN_CHAT_ID
+    
+    keyboard_buttons = [
+        [InlineKeyboardButton("📊 Статус бота", callback_data="cmd_status")],
+        [InlineKeyboardButton("ℹ️ Помощь", callback_data="cmd_help")]
+    ]
+    
+    if is_admin:
+        keyboard_buttons.extend([
+            [
+                InlineKeyboardButton("👁 Превью постов", callback_data="cmd_preview"),
+                InlineKeyboardButton("🔄 Проверить релизы", callback_data="cmd_check")
+            ],
+            [
+                InlineKeyboardButton("💭 Создать мысли", callback_data="cmd_thoughts"),
+                InlineKeyboardButton("⏰ Запланированные", callback_data="cmd_scheduled")
+            ],
+            [
+                InlineKeyboardButton("📈 Статистика", callback_data="cmd_stats"),
+                InlineKeyboardButton("🤖 Авто-публикация", callback_data="cmd_auto_menu")
+            ],
+            [
+                InlineKeyboardButton("⚙️ Настройки", callback_data="cmd_settings"),
+                InlineKeyboardButton("🧹 Очистка", callback_data="cmd_clean_menu")
+            ],
+            [
+                InlineKeyboardButton("🔧 Инструменты", callback_data="cmd_tools_menu")
+            ]
+        ])
+    
+    keyboard = InlineKeyboardMarkup(keyboard_buttons)
+    
+    welcome_text = (
+        "👟 <b>HypeBot</b> - мониторинг релизов кроссовок и уличной моды\n\n"
+        "🔥 Актуальные релизы Nike, Adidas, Jordan и других брендов\n"
+        "🤖 Автоматическая генерация описаний и обложек\n"
+        "⏰ Планировщик публикаций\n"
+        "⭐️ Избранное и авто-публикация\n\n"
+        "Выберите нужную команду:"
+    )
+    
+    if is_admin:
+        welcome_text += f"\n\n🔐 <i>Вы вошли как администратор</i>"
+    
+    await query.edit_message_text(
+        welcome_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=keyboard
+    )
+
+async def show_help_info(query):
+    """Показать справку"""
+    help_text = (
+        "ℹ️ <b>Справка по HypeBot</b>\n\n"
+        "🔥 <b>Что умеет бот:</b>\n"
+        "• Мониторинг релизов кроссовок и моды\n"
+        "• Автоматическая генерация описаний\n"
+        "• Создание обложек через ИИ\n"
+        "• Планирование публикаций\n"
+        "• Система тегов и фильтров\n\n"
+        "📱 <b>Источники:</b>\n"
+        "• SneakerNews\n"
+        "• Hypebeast\n"
+        "• Highsnobiety\n\n"
+        "🤖 <b>ИИ функции:</b>\n"
+        "• GPT-4 для генерации текстов\n"
+        "• DALL-E 3 для создания обложек\n"
+        "• GPT-4 Vision для анализа изображений\n\n"
+        "🏷 <b>Система тегов:</b>\n"
+        "• Автоматическое определение брендов\n"
+        "• Распознавание моделей\n"
+        "• Фильтрация по категориям\n\n"
+        "💬 Для получения доступа администратора обратитесь к создателю бота"
+    )
+    
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("◀️ Назад в меню", callback_data="cmd_back_main")]
+    ])
+    
+    await query.edit_message_text(
+        help_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=keyboard
+    )
+
+async def show_settings_menu(query):
+    """Показать меню настроек"""
+    current_channel = state.get("channel", config.TELEGRAM_CHANNEL)
+    current_timezone = state.get("timezone", config.DEFAULT_TIMEZONE)
+    
+    settings_text = (
+        "⚙️ <b>Настройки бота</b>\n\n"
+        f"📢 Канал публикации: <code>{current_channel}</code>\n"
+        f"🕐 Временная зона: {current_timezone}\n"
+        f"📅 Текущее время: {datetime.now(pytz.timezone(current_timezone)).strftime('%H:%M')}\n"
+    )
+    
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📢 Изменить канал", callback_data="settings_channel")],
+        [InlineKeyboardButton("🕐 Изменить временную зону", callback_data="settings_timezone")],
+        [InlineKeyboardButton("◀️ Назад в меню", callback_data="cmd_back_main")]
+    ])
+    
+    await query.edit_message_text(
+        settings_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=keyboard
+    )
+
+async def show_timezone_menu(query):
+    """Показать меню выбора временной зоны"""
+    timezones = [
+        ("🇷🇺 Москва", "Europe/Moscow"),
+        ("🇷🇺 Санкт-Петербург", "Europe/Moscow"),
+        ("🇷🇺 Екатеринбург", "Asia/Yekaterinburg"),
+        ("🇷🇺 Новосибирск", "Asia/Novosibirsk"),
+        ("🇷🇺 Владивосток", "Asia/Vladivostok"),
+        ("🇺🇦 Киев", "Europe/Kiev"),
+        ("🇰🇿 Алматы", "Asia/Almaty"),
+        ("🇧🇾 Минск", "Europe/Minsk"),
+        ("🇺🇸 Нью-Йорк", "America/New_York"),
+        ("🇬🇧 Лондон", "Europe/London"),
+    ]
+    
+    keyboard_buttons = []
+    for name, tz in timezones:
+        callback_data = f"tz_{tz.replace('/', '_')}"
+        keyboard_buttons.append([InlineKeyboardButton(name, callback_data=callback_data)])
+    
+    keyboard_buttons.append([InlineKeyboardButton("◀️ Назад", callback_data="cmd_settings")])
+    
+    await query.edit_message_text(
+        "🕐 <b>Выберите временную зону:</b>",
+        parse_mode=ParseMode.HTML,
+        reply_markup=InlineKeyboardMarkup(keyboard_buttons)
+    )
+
+async def show_stats_info(query):
+    """Показать статистику"""
+    try:
+        pending_count = len(state["pending"])
+        sent_count = len(state["sent_links"])
+        scheduled_count = len(state.get("scheduled_posts", {}))
+        favorites_count = len(state.get("favorites", []))
+        
+        # Статистика по брендам
+        brand_stats = {}
+        for post in state["pending"].values():
+            brands = post.get("tags", {}).get("brands", [])
+            for brand in brands:
+                brand_stats[brand] = brand_stats.get(brand, 0) + 1
+        
+        # Статистика по источникам
+        source_stats = {}
+        for post in state["pending"].values():
+            source = post.get("source", "Unknown")
+            source_stats[source] = source_stats.get(source, 0) + 1
+        
+        stats_text = (
+            f"📈 <b>Статистика бота:</b>\n\n"
+            f"📝 Постов в ожидании: {pending_count}\n"
+            f"⏰ Запланировано: {scheduled_count}\n"
+            f"⭐️ В избранном: {favorites_count}\n"
+            f"✅ Опубликовано: {sent_count}\n\n"
+        )
+        
+        if brand_stats:
+            stats_text += "🏷 <b>По брендам:</b>\n"
+            for brand, count in sorted(brand_stats.items(), key=lambda x: x[1], reverse=True)[:5]:
+                stats_text += f"• {brand.title()}: {count}\n"
+            stats_text += "\n"
+        
+        if source_stats:
+            stats_text += "📍 <b>По источникам:</b>\n"
+            for source, count in sorted(source_stats.items(), key=lambda x: x[1], reverse=True):
+                stats_text += f"• {source}: {count}\n"
+        
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Назад в меню", callback_data="cmd_back_main")]
+        ])
+        
+        await query.edit_message_text(
+            stats_text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=keyboard
+        )
+    except Exception as e:
+        logging.error(f"Ошибка в show_stats_info: {e}")
+        await query.edit_message_text("❌ Произошла ошибка")
+
+async def show_tools_menu(query):
+    """Показать меню инструментов"""
+    tools_text = (
+        "🔧 <b>Инструменты</b>\n\n"
+        "Дополнительные функции для администратора:"
+    )
+    
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔍 Тест источников", callback_data="tool_test_sources")],
+        [InlineKeyboardButton("◀️ Назад в меню", callback_data="cmd_back_main")]
+    ])
+    
+    await query.edit_message_text(
+        tools_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=keyboard
+    )
+
+async def show_clean_menu(query):
+    """Показать меню очистки"""
+    clean_text = (
+        "🧹 <b>Меню очистки</b>\n\n"
+        "Выберите что нужно очистить:"
+    )
+    
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🗑 Старые посты", callback_data="clean_old")],
+        [InlineKeyboardButton("📝 Очередь постов", callback_data="clean_pending")],
+        [InlineKeyboardButton("✅ Обработанные", callback_data="clean_sent")],
+        [InlineKeyboardButton("◀️ Назад в меню", callback_data="cmd_back_main")]
+    ])
+    
+    await query.edit_message_text(
+        clean_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=keyboard
+    )
+
+async def start_preview_mode(query, context):
+    """Запустить режим превью"""
+    try:
+        if not state["pending"]:
+            await query.edit_message_text("📭 Нет постов для просмотра")
+            return
+        
+        # Создаем список для превью (сортируем по дате)
+        preview_list = sorted(
+            state["pending"].keys(),
+            key=lambda x: state["pending"][x].get("timestamp", ""),
+            reverse=True
+        )
+        
+        state["preview_mode"] = {
+            "list": preview_list,
+            "current": 0
+        }
+        save_state()
+        
+        # Показываем первый пост без удаления сообщения
+        first_record = state["pending"].get(preview_list[0])
+        if first_record:
+            await send_preview(
+                context.bot,
+                first_record,
+                query.message.chat.id,
+                0,
+                len(preview_list),
+                query.message.message_id
+            )
+        
+    except Exception as e:
+        logging.error(f"Ошибка в start_preview_mode: {e}")
+        try:
+            await query.edit_message_text("❌ Произошла ошибка при запуске превью")
+        except:
+            await query.answer("❌ Произошла ошибка при запуске превью")
+
+async def show_status_info(query):
+    """Показать статус бота"""
+    try:
+        pending_count = len(state["pending"])
+        sent_count = len(state["sent_links"])
+        scheduled_count = len(state.get("scheduled_posts", {}))
+        
+        # Следующий запланированный пост
+        next_scheduled = None
+        if state.get("scheduled_posts"):
+            next_post = min(
+                state["scheduled_posts"].items(),
+                key=lambda x: x[1]["time"]
+            )
+            next_time = datetime.fromisoformat(next_post[1]["time"].replace('Z', '+00:00'))
+            local_time = localize_datetime(next_time)
+            next_scheduled = f"⏰ Следующий пост: {local_time.strftime('%d.%m %H:%M')} ({state.get('timezone', config.DEFAULT_TIMEZONE)})"
+        
+        # Последние 3 поста
+        recent_posts = sorted(
+            state["pending"].values(),
+            key=lambda x: x.get("timestamp", ""),
+            reverse=True
+        )[:3]
+        
+        status_text = (
+            f"📊 <b>Статус бота:</b>\n\n"
+            f"📝 Постов в ожидании: {pending_count}\n"
+            f"⏰ Запланировано: {scheduled_count}\n"
+            f"✅ Опубликовано: {sent_count}\n"
+            f"📢 Канал: <code>{state.get('channel', config.TELEGRAM_CHANNEL)}</code>\n"
+        )
+        
+        if next_scheduled:
+            status_text += f"\n{next_scheduled}\n"
+        
+        if recent_posts:
+            status_text += "\n🆕 <b>Последние посты:</b>\n"
+            for post in recent_posts:
+                emoji = "👟" if post.get("category") == "sneakers" else "👔"
+                date = utils.format_date_for_display(post.get("timestamp", ""))
+                status_text += f"{emoji} {date} - {post['title'][:40]}...\n"
+        
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("◀️ Назад в меню", callback_data="cmd_back_main")]
+        ])
+        
+        await query.edit_message_text(
+            status_text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=keyboard
+        )
+    except Exception as e:
+        logging.error(f"Ошибка в show_status_info: {e}")
+        await query.edit_message_text("❌ Произошла ошибка")
+
+async def show_scheduled_posts(query):
+    """Показать запланированные посты с возможностью редактирования"""
+    try:
+        scheduled = state.get("scheduled_posts", {})
+        
+        if not scheduled:
+            text = "📭 <b>Нет запланированных постов</b>"
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Назад в меню", callback_data="cmd_back_main")]
+            ])
+        else:
+            text = "📅 <b>Запланированные посты:</b>\n\n"
+            keyboard_buttons = []
+            
+            for post_id, info in sorted(scheduled.items(), key=lambda x: x[1]["time"]):
+                scheduled_time = datetime.fromisoformat(info["time"].replace('Z', '+00:00'))
+                local_time = localize_datetime(scheduled_time)
+                record = info["record"]
+                
+                text += (
+                    f"⏰ {local_time.strftime('%d.%m %H:%M')} ({state.get('timezone', config.DEFAULT_TIMEZONE)})\n"
+                    f"📝 {record['title'][:50]}...\n"
+                    f"📍 {record.get('source', 'Unknown')}\n\n"
+                )
+                
+                # Кнопки для каждого поста
+                keyboard_buttons.append([
+                    InlineKeyboardButton("✏️ Изменить", callback_data=f"edit_schedule:{post_id}"),
+                    InlineKeyboardButton("🗑 Удалить", callback_data=f"delete_schedule:{post_id}")
+                ])
+            
+            keyboard_buttons.append([InlineKeyboardButton("◀️ Назад в меню", callback_data="cmd_back_main")])
+            keyboard = InlineKeyboardMarkup(keyboard_buttons)
+        
+        await query.edit_message_text(
+            text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=keyboard
+        )
+        
+    except Exception as e:
+        logging.error(f"Ошибка в show_scheduled_posts: {e}")
+        await query.edit_message_text("❌ Произошла ошибка")
+
+async def show_auto_publish_menu(query):
+    """Меню авто-публикации"""
+    is_enabled = state.get("auto_publish", False)
+    interval = state.get("publish_interval", 3600) // 60  # В минутах
+    favorites_count = len(state.get("favorites", []))
+    
+    text = (
+        f"🤖 <b>Автоматическая публикация</b>\n\n"
+        f"Статус: {'✅ Включена' if is_enabled else '❌ Выключена'}\n"
+        f"Интервал: {interval} минут\n"
+        f"Постов в избранном: {favorites_count}\n\n"
+        f"Бот будет автоматически публиковать посты из избранного с заданным интервалом"
+    )
+    
+    keyboard_buttons = [
+        [InlineKeyboardButton(
+            "🔴 Выключить" if is_enabled else "🟢 Включить",
+            callback_data="auto_toggle"
+        )],
+        [
+            InlineKeyboardButton("30 мин", callback_data="auto_interval:1800"),
+            InlineKeyboardButton("1 час", callback_data="auto_interval:3600"),
+            InlineKeyboardButton("2 часа", callback_data="auto_interval:7200")
+        ],
+        [InlineKeyboardButton("◀️ Назад в меню", callback_data="cmd_back_main")]
+    ]
+    
+    keyboard = InlineKeyboardMarkup(keyboard_buttons)
+    
+    await query.edit_message_text(
+        text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=keyboard
+    )
+
+async def show_thoughts_prompt(query):
+    """Показать инструкцию для создания мыслей"""
+    thoughts_text = (
+        "💭 <b>Создание поста-размышления</b>\n\n"
+        "Для создания личного поста используйте команду:\n"
+        "<code>/thoughts описание темы</code>\n\n"
+        "📝 <b>Пример:</b>\n"
+        "<code>/thoughts новые Jordan 4 в черном цвете</code>\n\n"
+        "📸 После команды можно прикрепить изображение для анализа\n\n"
+        "💡 Бот создаст пост в личном стиле с эмоциями и впечатлениями"
+    )
+    
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("◀️ Назад в меню", callback_data="cmd_back_main")]
+    ])
+    
+    await query.edit_message_text(
+        thoughts_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=keyboard
+    )
+
+async def show_filter_menu(query):
+    """Показать меню фильтров"""
+    # Собираем все уникальные теги
+    all_brands = set()
+    all_models = set()
+    all_types = set()
+    
+    for post in state["pending"].values():
+        tags = post.get("tags", {})
+        all_brands.update(tags.get("brands", []))
+        all_models.update(tags.get("models", []))
+        all_types.update(tags.get("types", []))
+    
+    keyboard_buttons = []
+    
+    # Кнопки брендов
+    if all_brands:
+        brand_buttons = []
+        for brand in sorted(all_brands)[:3]:  # Показываем первые 3
+            brand_buttons.append(
+                InlineKeyboardButton(
+                    brand.title(), 
+                    callback_data=f"filter_brand:{brand}"
+                )
+            )
+        keyboard_buttons.append(brand_buttons)
+    
+    # Кнопки моделей
+    if all_models:
+        model_buttons = []
+        for model in sorted(all_models)[:3]:
+            model_buttons.append(
+                InlineKeyboardButton(
+                    model.upper(), 
+                    callback_data=f"filter_model:{model}"
+                )
+            )
+        keyboard_buttons.append(model_buttons)
+    
+    # Кнопки типов
+    if all_types:
+        type_buttons = []
+        for rtype in sorted(all_types)[:3]:
+            type_buttons.append(
+                InlineKeyboardButton(
+                    rtype.title(), 
+                    callback_data=f"filter_type:{rtype}"
+                )
+            )
+        keyboard_buttons.append(type_buttons)
+    
+    keyboard_buttons.extend([
+        [InlineKeyboardButton("🔄 Сбросить фильтры", callback_data="filter_reset")],
+        [InlineKeyboardButton("◀️ Назад", callback_data="preview_close")]
+    ])
+    
+    await query.edit_message_text(
+        "🏷 <b>Фильтр по тегам</b>\n\n"
+        "Выберите тег для фильтрации:",
+        parse_mode=ParseMode.HTML,
+        reply_markup=InlineKeyboardMarkup(keyboard_buttons)
+    )
+
+async def filter_posts_by_tag(query, context, tag_type: str, tag_value: str):
+    """Фильтрация постов по тегу"""
+    filtered_posts = []
+    
+    for uid, post in state["pending"].items():
+        tags = post.get("tags", {})
+        if tag_type == "brand" and tag_value in tags.get("brands", []):
+            filtered_posts.append(uid)
+        elif tag_type == "model" and tag_value in tags.get("models", []):
+            filtered_posts.append(uid)
+        elif tag_type == "type" and tag_value in tags.get("types", []):
+            filtered_posts.append(uid)
+    
+    if not filtered_posts:
+        await query.edit_message_text(f"📭 Нет постов с тегом {tag_value}")
+        return
+    
+    # Сортируем по дате
+    filtered_posts.sort(
+        key=lambda x: state["pending"][x].get("timestamp", ""),
+        reverse=True
+    )
+    
+    state["preview_mode"] = {
+        "list": filtered_posts,
+        "current": 0,
+        "filter": {tag_type: tag_value}
+    }
+    save_state()
+    
+    await query.edit_message_text(
+        f"✅ Найдено {len(filtered_posts)} постов с тегом {tag_value}"
+    )
+    
+    # Показываем первый пост
+    first_record = state["pending"].get(filtered_posts[0])
+    if first_record:
+        await send_preview(
+            context.bot,
+            first_record,
+            query.message.chat.id,
+            0,
+            len(filtered_posts)
+        )
+
+async def test_sources_inline(query, context):
+    """Тестирование источников через inline кнопки"""
+    try:
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            
+            results = []
+            
+            for idx, src in enumerate(config.SOURCES):
+                try:
+                    await query.edit_message_text(f"🔍 Тестирую источники... ({idx + 1}/{len(config.SOURCES)})\n📍 {src['name']}")
+                    
+                    resp = await client.get(src["api"], headers=headers, timeout=20)
+                    resp.raise_for_status()
+                    
+                    if src["type"] == "rss":
+                        try:
+                            soup = BeautifulSoup(resp.text, "xml")
+                            items = soup.find_all("item")
+                        except:
+                            soup = BeautifulSoup(resp.text, "html.parser")
+                            items = soup.find_all("item")
+                        
+                        if not items:
+                            items = soup.find_all("entry")
+                        
+                        count = len(items)
+                        first_title = items[0].find("title").get_text(strip=True) if items else "Нет"
+                        
+                        results.append(f"✅ {src['name']} ({src.get('category', 'unknown')}):\n"
+                                     f"   Записей: {count}\n"
+                                     f"   Первая: {first_title[:40]}...")
+                    else:
+                        posts = resp.json()
+                        count = len(posts) if isinstance(posts, list) else 0
+                        
+                        results.append(f"✅ {src['name']} ({src.get('category', 'unknown')}):\n"
+                                     f"   Постов: {count}")
+                    
+                except Exception as e:
+                    results.append(f"❌ {src['name']}: {type(e).__name__}")
+            
+            # Формируем итоговое сообщение
+            final_text = "📊 <b>Результаты тестирования:</b>\n\n" + "\n\n".join(results)
+            
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Назад в меню", callback_data="cmd_back_main")]
+            ])
+            
+            await query.edit_message_text(
+                final_text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=keyboard
+            )
+        
+    except Exception as e:
+        logging.error(f"Ошибка в test_sources_inline: {e}")
+        await query.edit_message_text("❌ Произошла ошибка")
+
+async def reset_state_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда для сброса состояния (только для админа)"""
+    try:
+        user_id = update.message.from_user.id
+        if config.ADMIN_CHAT_ID and user_id != config.ADMIN_CHAT_ID:
+            await update.message.reply_text("❌ Эта команда доступна только администратору")
+            return
+        
+        # Создаем новое чистое состояние
+        global state
+        state = {
+            "sent_links": [], 
+            "pending": {}, 
+            "moderation_queue": [], 
+            "preview_mode": {}, 
+            "thoughts_mode": False,
+            "scheduled_posts": {},
+            "generated_images": {},
+            "waiting_for_image": None,
+            "current_thought": None,
+            "waiting_for_schedule": None,
+            "editing_schedule": None,
+            "favorites": [],
+            "auto_publish": False,
+            "publish_interval": 3600,
+            "timezone": config.DEFAULT_TIMEZONE,
+            "channel": config.TELEGRAM_CHANNEL,
+            "waiting_for_channel": False
+        }
+        save_state()
+        
+        await update.message.reply_text(
+            "✅ Состояние бота сброшено!\n\n"
+            "Все посты очищены. Запустите /check для поиска новых релизов."
+        )
+        
+    except Exception as e:
+        logging.error(f"Ошибка в reset_state_command: {e}")
+        await update.message.reply_text("❌ Произошла ошибка при сбросе состояния")
+
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+# Новые функции для улучшенного функционала
+
+async def edit_thought_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка редактирования текста мысли"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["editing_thought"] = True
+    save_state()
+    
+    thought_data = state.get("current_thought", {})
+    current_text = thought_data.get("text", "")
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:300]}...</i>\n\n"
+        f"Отправьте новый текст для поста-размышления.\n\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def change_thought_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрос на смену фото"""
+    query = update.callback_query
+    await query.answer()
+    
+    state["changing_thought_photo"] = True
+    save_state()
+    
+    await query.edit_message_text(
+        "📷 <b>Замена изображения</b>\n\n"
+        "Отправьте новое изображение для поста.\n"
+        "Поддерживаются форматы: JPG, PNG\n\n"
+        "Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )
+
+
+async def edit_post_text_handler(query, context, post_id):
+    """Обработка редактирования текста поста"""
+    record = state["pending"].get(post_id)
+    if not record:
+        await query.edit_message_text("❌ Пост не найден")
+        return
+    
+    state["editing_post"] = post_id
+    save_state()
+    
+    current_text = record.get("description", record.get("title", ""))
+    
+    await query.edit_message_text(
+        f"✏️ <b>Редактирование текста поста</b>\n\n"
+        f"<b>Текущий текст:</b>\n<i>{current_text[:500]}...</i>\n\n"
+        f"Отправьте новый текст для поста.\n"
+        f"Отправьте /cancel для отмены",
+        parse_mode=ParseMode.HTML
+    )

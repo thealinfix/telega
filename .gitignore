@@ -1,0 +1,39 @@
+# Секретные данные - ВАЖНО!
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Виртуальное окружение
+venv/
+env/
+
+# Логи
+*.log
+bot.log
+nohup.out
+
+# Состояние бота
+state.json
+
+# Временные файлы
+*.tmp
+*.bak
+.DS_Store
+extract_*.py
+fix_*.py
+add_*.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python cache directories
+**/__pycache__/
+hypebot/__pycache__/
